@@ -43,6 +43,11 @@
     </issueManagement>
     <dependencies>
         <dependency>
+            <groupId>com.ingenico.connect.gateway</groupId>
+            <artifactId>connect-sdk-java</artifactId>
+            <version>4.0.0</version>
+        </dependency>
+        <dependency>
             <groupId>org.kill-bill.billing</groupId>
             <artifactId>killbill-api</artifactId>
             <scope>provided</scope>
