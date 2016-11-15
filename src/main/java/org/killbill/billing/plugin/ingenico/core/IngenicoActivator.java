@@ -25,8 +25,13 @@ import javax.servlet.http.HttpServlet;
 
 import org.killbill.billing.osgi.api.OSGIPluginProperties;
 import org.killbill.billing.payment.plugin.api.PaymentPluginApi;
+import org.killbill.billing.plugin.dao.payment.PluginPaymentDao;
 import org.killbill.billing.plugin.ingenico.IngenicoListener;
 import org.killbill.billing.plugin.ingenico.api.IngenicoPaymentPluginApi;
+import org.killbill.billing.plugin.ingenico.client.IngenicoClient;
+import org.killbill.billing.plugin.ingenico.dao.IngenicoDao;
+import org.killbill.clock.Clock;
+import org.killbill.clock.DefaultClock;
 import org.killbill.killbill.osgi.libs.killbill.KillbillActivatorBase;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillEventDispatcher.OSGIKillbillEventHandler;
 import org.osgi.framework.BundleContext;
@@ -36,20 +41,28 @@ public class IngenicoActivator extends KillbillActivatorBase {
     //
     // Ideally that string should match the pluginName on the filesystem, but there is no enforcement
     //
-    public static final String PLUGIN_NAME = "hello-world-plugin";
+    public static final String PLUGIN_NAME = "killbill-ingenico";
 
     private OSGIKillbillEventHandler killbillEventHandler;
+    private IngenicoConfigurationHandler ingenicoConfigurationHandler;
 
     @Override
     public void start(final BundleContext context) throws Exception {
         super.start(context);
 
+        final Clock clock = new DefaultClock();
+        final PluginPaymentDao dao = new IngenicoDao(dataSource.getDataSource());
+
         // Register an event listener (optional)
         killbillEventHandler = new IngenicoListener(logService, killbillAPI);
         registerEventHandlerWhenPluginStart(killbillEventHandler);
 
+        ingenicoConfigurationHandler = new IngenicoConfigurationHandler(PLUGIN_NAME, killbillAPI, logService);
+        final IngenicoClient globalIngenicoClient = ingenicoConfigurationHandler.createConfigurable(configProperties.getProperties());
+        ingenicoConfigurationHandler.setDefaultConfigurable(globalIngenicoClient);
+
         // As an example, this plugin registers a PaymentPluginApi (this could be changed to any other plugin api)
-        final PaymentPluginApi paymentPluginApi = new IngenicoPaymentPluginApi(configProperties.getProperties(), logService);
+        final PaymentPluginApi paymentPluginApi = new IngenicoPaymentPluginApi(ingenicoConfigurationHandler, killbillAPI, configProperties, clock, dao, logService);
         registerPaymentPluginApi(context, paymentPluginApi);
 
         // Register a servlet (optional)
