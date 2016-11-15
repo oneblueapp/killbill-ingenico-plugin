@@ -1,6 +1,8 @@
 killbill-ingenico-plugin
 ======================
 
+* This is a WIP. Any attempt to use it will fail miserably.
+
 Plugin to use [Ingenico](http://www.globalcollect.com/) (Global Collect) as a gateway.
 
 Release builds are available on [Maven Central](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22org.kill-bill.billing.plugin.java%22%20AND%20a%3A%22ingenico-plugin%22) with coordinates `org.kill-bill.billing.plugin.java:ingenico-plugin`.
