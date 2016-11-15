@@ -1,7 +1,7 @@
 killbill-ingenico-plugin
 ======================
 
-* This is a WIP. Any attempt to use it will fail miserably.
+**This is a WIP. Any attempt to use it will fail miserably.**
 
 Plugin to use [Ingenico](http://www.globalcollect.com/) (Global Collect) as a gateway.
 
