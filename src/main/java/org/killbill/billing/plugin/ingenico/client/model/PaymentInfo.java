@@ -20,27 +20,9 @@ package org.killbill.billing.plugin.ingenico.client.model;
 import java.util.Map;
 
 public class PaymentInfo {
-
-    private Integer captureDelayHours;
-    private Integer installments;
-    private String contract;
     private String shopperInteraction;
     private String shopperStatement;
-    // 3D Secure
-    private Long threeDThreshold;
-    private String acceptHeader;
-    private String userAgent;
-    private String md;
-    private String paRes;
-    private String mpiDataDirectoryResponse;
-    private String mpiDataAuthenticationResponse;
-    private String mpiDataCavv;
-    private String mpiDataCavvAlgorithm;
-    private String mpiDataXid;
-    private String mpiDataEci;
-    private String mpiImplementationType;
-    private Map<String, String> mpiImplementationTypeValues;
-    private String termUrl;
+
     // Billing Address
     private String street;
     private String houseNumberOrName;
@@ -52,30 +34,6 @@ public class PaymentInfo {
     private String acquirer;
     private String acquirerMID;
     private String selectedBrand;
-
-    public Integer getCaptureDelayHours() {
-        return captureDelayHours;
-    }
-
-    public void setCaptureDelayHours(final Integer captureDelayHours) {
-        this.captureDelayHours = captureDelayHours;
-    }
-
-    public Integer getInstallments() {
-        return installments;
-    }
-
-    public void setInstallments(final Integer installments) {
-        this.installments = installments;
-    }
-
-    public String getContract() {
-        return contract;
-    }
-
-    public void setContract(final String contract) {
-        this.contract = contract;
-    }
 
     public String getShopperInteraction() {
         return shopperInteraction;
@@ -91,118 +49,6 @@ public class PaymentInfo {
 
     public void setShopperStatement(final String shopperStatement) {
         this.shopperStatement = shopperStatement;
-    }
-
-    public Long getThreeDThreshold() {
-        return threeDThreshold;
-    }
-
-    public void setThreeDThreshold(final Long threeDThreshold) {
-        this.threeDThreshold = threeDThreshold;
-    }
-
-    public String getAcceptHeader() {
-        return acceptHeader;
-    }
-
-    public void setAcceptHeader(final String acceptHeader) {
-        this.acceptHeader = acceptHeader;
-    }
-
-    public String getUserAgent() {
-        return userAgent;
-    }
-
-    public void setUserAgent(final String userAgent) {
-        this.userAgent = userAgent;
-    }
-
-    public String getMd() {
-        return md;
-    }
-
-    public void setMd(final String md) {
-        this.md = md;
-    }
-
-    public String getPaRes() {
-        return paRes;
-    }
-
-    public void setPaRes(final String paRes) {
-        this.paRes = paRes;
-    }
-
-    public String getMpiDataDirectoryResponse() {
-        return mpiDataDirectoryResponse;
-    }
-
-    public void setMpiDataDirectoryResponse(final String mpiDataDirectoryResponse) {
-        this.mpiDataDirectoryResponse = mpiDataDirectoryResponse;
-    }
-
-    public String getMpiDataAuthenticationResponse() {
-        return mpiDataAuthenticationResponse;
-    }
-
-    public void setMpiDataAuthenticationResponse(final String mpiDataAuthenticationResponse) {
-        this.mpiDataAuthenticationResponse = mpiDataAuthenticationResponse;
-    }
-
-    public String getMpiDataCavv() {
-        return mpiDataCavv;
-    }
-
-    public void setMpiDataCavv(final String mpiDataCavv) {
-        this.mpiDataCavv = mpiDataCavv;
-    }
-
-    public String getMpiDataCavvAlgorithm() {
-        return mpiDataCavvAlgorithm;
-    }
-
-    public void setMpiDataCavvAlgorithm(final String mpiDataCavvAlgorithm) {
-        this.mpiDataCavvAlgorithm = mpiDataCavvAlgorithm;
-    }
-
-    public String getMpiDataXid() {
-        return mpiDataXid;
-    }
-
-    public void setMpiDataXid(final String mpiDataXid) {
-        this.mpiDataXid = mpiDataXid;
-    }
-
-    public String getMpiDataEci() {
-        return mpiDataEci;
-    }
-
-    public void setMpiDataEci(final String mpiDataEci) {
-        this.mpiDataEci = mpiDataEci;
-    }
-
-    public String getMpiImplementationType() {
-        return mpiImplementationType;
-    }
-
-    public void setMpiImplementationType(final String mpiImplementationType) {
-        this.mpiImplementationType = mpiImplementationType;
-    }
-
-    public Map<String, String> getMpiImplementationTypeValues() {
-        return mpiImplementationTypeValues;
-    }
-
-    public void setMpiImplementationTypeValues(final Map<String, String> mpiImplementationTypeValues) {
-        this.mpiImplementationTypeValues = mpiImplementationTypeValues;
-    }
-
-    public String getTermUrl() {
-        return termUrl;
-    }
-
-    public void setTermUrl(final String termUrl) {
-        this.termUrl = termUrl;
     }
 
     public String getStreet() {
@@ -253,22 +99,6 @@ public class PaymentInfo {
         this.country = country;
     }
 
-    public String getAcquirer() {
-        return acquirer;
-    }
-
-    public void setAcquirer(final String acquirer) {
-        this.acquirer = acquirer;
-    }
-
-    public String getAcquirerMID() {
-        return acquirerMID;
-    }
-
-    public void setAcquirerMID(final String acquirerMID) {
-        this.acquirerMID = acquirerMID;
-    }
-
     public String getSelectedBrand() {
         return selectedBrand;
     }
@@ -280,25 +110,8 @@ public class PaymentInfo {
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("PaymentInfo{");
-        sb.append("captureDelayHours=").append(captureDelayHours);
-        sb.append(", installments=").append(installments);
-        sb.append(", contract='").append(contract).append('\'');
         sb.append(", shopperInteraction='").append(shopperInteraction).append('\'');
         sb.append(", shopperStatement='").append(shopperStatement).append('\'');
-        sb.append(", threeDThreshold=").append(threeDThreshold);
-        sb.append(", acceptHeader='").append(acceptHeader).append('\'');
-        sb.append(", userAgent='").append(userAgent).append('\'');
-        sb.append(", md='").append(md).append('\'');
-        sb.append(", paRes='").append(paRes).append('\'');
-        sb.append(", mpiDataDirectoryResponse='").append(mpiDataDirectoryResponse).append('\'');
-        sb.append(", mpiDataAuthenticationResponse='").append(mpiDataAuthenticationResponse).append('\'');
-        sb.append(", mpiDataCavv='").append(mpiDataCavv).append('\'');
-        sb.append(", mpiDataCavvAlgorithm='").append(mpiDataCavvAlgorithm).append('\'');
-        sb.append(", mpiDataXid='").append(mpiDataXid).append('\'');
-        sb.append(", mpiDataEci='").append(mpiDataEci).append('\'');
-        sb.append(", mpiImplementationType='").append(mpiImplementationType).append('\'');
-        sb.append(", mpiImplementationTypeValues=").append(mpiImplementationTypeValues);
-        sb.append(", termUrl='").append(termUrl).append('\'');
         sb.append(", street='").append(street).append('\'');
         sb.append(", houseNumberOrName='").append(houseNumberOrName).append('\'');
         sb.append(", city='").append(city).append('\'');
@@ -323,61 +136,10 @@ public class PaymentInfo {
 
         final PaymentInfo that = (PaymentInfo) o;
 
-        if (captureDelayHours != null ? !captureDelayHours.equals(that.captureDelayHours) : that.captureDelayHours != null) {
-            return false;
-        }
-        if (installments != null ? !installments.equals(that.installments) : that.installments != null) {
-            return false;
-        }
-        if (contract != null ? !contract.equals(that.contract) : that.contract != null) {
-            return false;
-        }
         if (shopperInteraction != null ? !shopperInteraction.equals(that.shopperInteraction) : that.shopperInteraction != null) {
             return false;
         }
         if (shopperStatement != null ? !shopperStatement.equals(that.shopperStatement) : that.shopperStatement != null) {
-            return false;
-        }
-        if (threeDThreshold != null ? !threeDThreshold.equals(that.threeDThreshold) : that.threeDThreshold != null) {
-            return false;
-        }
-        if (acceptHeader != null ? !acceptHeader.equals(that.acceptHeader) : that.acceptHeader != null) {
-            return false;
-        }
-        if (userAgent != null ? !userAgent.equals(that.userAgent) : that.userAgent != null) {
-            return false;
-        }
-        if (md != null ? !md.equals(that.md) : that.md != null) {
-            return false;
-        }
-        if (paRes != null ? !paRes.equals(that.paRes) : that.paRes != null) {
-            return false;
-        }
-        if (mpiDataDirectoryResponse != null ? !mpiDataDirectoryResponse.equals(that.mpiDataDirectoryResponse) : that.mpiDataDirectoryResponse != null) {
-            return false;
-        }
-        if (mpiDataAuthenticationResponse != null ? !mpiDataAuthenticationResponse.equals(that.mpiDataAuthenticationResponse) : that.mpiDataAuthenticationResponse != null) {
-            return false;
-        }
-        if (mpiDataCavv != null ? !mpiDataCavv.equals(that.mpiDataCavv) : that.mpiDataCavv != null) {
-            return false;
-        }
-        if (mpiDataCavvAlgorithm != null ? !mpiDataCavvAlgorithm.equals(that.mpiDataCavvAlgorithm) : that.mpiDataCavvAlgorithm != null) {
-            return false;
-        }
-        if (mpiDataXid != null ? !mpiDataXid.equals(that.mpiDataXid) : that.mpiDataXid != null) {
-            return false;
-        }
-        if (mpiDataEci != null ? !mpiDataEci.equals(that.mpiDataEci) : that.mpiDataEci != null) {
-            return false;
-        }
-        if (mpiImplementationType != null ? !mpiImplementationType.equals(that.mpiImplementationType) : that.mpiImplementationType != null) {
-            return false;
-        }
-        if (mpiImplementationTypeValues != null ? !mpiImplementationTypeValues.equals(that.mpiImplementationTypeValues) : that.mpiImplementationTypeValues != null) {
-            return false;
-        }
-        if (termUrl != null ? !termUrl.equals(that.termUrl) : that.termUrl != null) {
             return false;
         }
         if (street != null ? !street.equals(that.street) : that.street != null) {
@@ -410,25 +172,8 @@ public class PaymentInfo {
 
     @Override
     public int hashCode() {
-        int result = captureDelayHours != null ? captureDelayHours.hashCode() : 0;
-        result = 31 * result + (installments != null ? installments.hashCode() : 0);
-        result = 31 * result + (contract != null ? contract.hashCode() : 0);
-        result = 31 * result + (shopperInteraction != null ? shopperInteraction.hashCode() : 0);
+        int result = shopperInteraction != null ? shopperInteraction.hashCode() : 0;
         result = 31 * result + (shopperStatement != null ? shopperStatement.hashCode() : 0);
-        result = 31 * result + (threeDThreshold != null ? threeDThreshold.hashCode() : 0);
-        result = 31 * result + (acceptHeader != null ? acceptHeader.hashCode() : 0);
-        result = 31 * result + (userAgent != null ? userAgent.hashCode() : 0);
-        result = 31 * result + (md != null ? md.hashCode() : 0);
-        result = 31 * result + (paRes != null ? paRes.hashCode() : 0);
-        result = 31 * result + (mpiDataDirectoryResponse != null ? mpiDataDirectoryResponse.hashCode() : 0);
-        result = 31 * result + (mpiDataAuthenticationResponse != null ? mpiDataAuthenticationResponse.hashCode() : 0);
-        result = 31 * result + (mpiDataCavv != null ? mpiDataCavv.hashCode() : 0);
-        result = 31 * result + (mpiDataCavvAlgorithm != null ? mpiDataCavvAlgorithm.hashCode() : 0);
-        result = 31 * result + (mpiDataXid != null ? mpiDataXid.hashCode() : 0);
-        result = 31 * result + (mpiDataEci != null ? mpiDataEci.hashCode() : 0);
-        result = 31 * result + (mpiImplementationType != null ? mpiImplementationType.hashCode() : 0);
-        result = 31 * result + (mpiImplementationTypeValues != null ? mpiImplementationTypeValues.hashCode() : 0);
-        result = 31 * result + (termUrl != null ? termUrl.hashCode() : 0);
         result = 31 * result + (street != null ? street.hashCode() : 0);
         result = 31 * result + (houseNumberOrName != null ? houseNumberOrName.hashCode() : 0);
         result = 31 * result + (city != null ? city.hashCode() : 0);

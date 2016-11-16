@@ -25,6 +25,7 @@ import javax.servlet.http.HttpServlet;
 
 import org.killbill.billing.osgi.api.OSGIPluginProperties;
 import org.killbill.billing.payment.plugin.api.PaymentPluginApi;
+import org.killbill.billing.plugin.api.notification.PluginConfigurationEventHandler;
 import org.killbill.billing.plugin.dao.payment.PluginPaymentDao;
 import org.killbill.billing.plugin.ingenico.IngenicoListener;
 import org.killbill.billing.plugin.ingenico.api.IngenicoPaymentPluginApi;
@@ -51,23 +52,26 @@ public class IngenicoActivator extends KillbillActivatorBase {
         super.start(context);
 
         final Clock clock = new DefaultClock();
-        final PluginPaymentDao dao = new IngenicoDao(dataSource.getDataSource());
+        final IngenicoDao dao = new IngenicoDao(dataSource.getDataSource());
 
         // Register an event listener (optional)
         killbillEventHandler = new IngenicoListener(logService, killbillAPI);
         registerEventHandlerWhenPluginStart(killbillEventHandler);
 
-        ingenicoConfigurationHandler = new IngenicoConfigurationHandler(PLUGIN_NAME, killbillAPI, logService);
         final IngenicoClient globalIngenicoClient = ingenicoConfigurationHandler.createConfigurable(configProperties.getProperties());
         ingenicoConfigurationHandler.setDefaultConfigurable(globalIngenicoClient);
 
-        // As an example, this plugin registers a PaymentPluginApi (this could be changed to any other plugin api)
-        final PaymentPluginApi paymentPluginApi = new IngenicoPaymentPluginApi(ingenicoConfigurationHandler, killbillAPI, configProperties, clock, dao, logService);
+        final PaymentPluginApi paymentPluginApi = new IngenicoPaymentPluginApi(ingenicoConfigurationHandler, killbillAPI, configProperties, logService, clock, dao);
         registerPaymentPluginApi(context, paymentPluginApi);
 
-        // Register a servlet (optional)
         final IngenicoServlet analyticsServlet = new IngenicoServlet(logService);
         registerServlet(context, analyticsServlet);
+    }
+
+    @Override
+    public OSGIKillbillEventHandler getOSGIKillbillEventHandler() {
+        ingenicoConfigurationHandler = new IngenicoConfigurationHandler(PLUGIN_NAME, killbillAPI, logService);
+        return new PluginConfigurationEventHandler(ingenicoConfigurationHandler);
     }
 
     @Override

@@ -1,5 +1,4 @@
 /*! SET storage_engine=INNODB */;
-m
 drop table if exists ingenico_responses;
 create table ingenico_responses (
   record_id int(11) unsigned not null auto_increment
@@ -9,22 +8,17 @@ create table ingenico_responses (
 , transaction_type varchar(32) not null
 , amount numeric(15,9)
 , currency char(3)
-, psp_result char(64)
-, psp_reference varchar(64)
-, auth_code varchar(64)
-, result_code varchar(64)
-, refusal_reason varchar(64)
-, reference varchar(64)
-, psp_error_codes varchar(64)
-, payment_internal_ref varchar(64)
-, form_url varchar(1024)
-, dcc_amount numeric(15,9)
-, dcc_currency char(3)
-, dcc_signature varchar(64)
-, issuer_url varchar(1024)
-, md varchar(512)
-, pa_request varchar(512)
-, additional_data longtext default null
+, pg_merchant_id varchar(255) not null
+, pg_product_id int(3) not null
+, pg_status varchar(255) not null
+, pg_transaction_method varchar(255)
+, pg_reference varchar(64)
+, pg_authorization_code varchar(255) null
+, pg_error_code varchar(64) null
+, pg_error_message varchar(255) null
+, pg_fraud_avs_result char(1) null
+, pg_fraud_cvv_result char(1) null
+, pg_fraud_result varchar(255) null
 , created_date datetime not null
 , kb_tenant_id char(36) not null
 , primary key(record_id)

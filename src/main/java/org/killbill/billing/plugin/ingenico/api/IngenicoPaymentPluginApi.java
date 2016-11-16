@@ -18,7 +18,6 @@
 package org.killbill.billing.plugin.ingenico.api;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import org.joda.time.DateTime;
 import org.killbill.billing.account.api.Account;
@@ -28,11 +27,12 @@ import org.killbill.billing.payment.api.*;
 import org.killbill.billing.payment.plugin.api.*;
 import org.killbill.billing.plugin.api.PluginProperties;
 import org.killbill.billing.plugin.api.payment.PluginPaymentPluginApi;
-import org.killbill.billing.plugin.dao.payment.PluginPaymentDao;
 import org.killbill.billing.plugin.ingenico.IngenicoPaymentTransactionInfoPlugin;
+import org.killbill.billing.plugin.ingenico.api.mapping.PaymentInfoMappingService;
 import org.killbill.billing.plugin.ingenico.client.IngenicoClient;
 import org.killbill.billing.plugin.ingenico.client.model.*;
 import org.killbill.billing.plugin.ingenico.core.IngenicoConfigurationHandler;
+import org.killbill.billing.plugin.ingenico.dao.IngenicoDao;
 import org.killbill.billing.plugin.ingenico.dao.gen.tables.IngenicoPaymentMethods;
 import org.killbill.billing.plugin.ingenico.dao.gen.tables.IngenicoResponses;
 import org.killbill.billing.plugin.ingenico.dao.gen.tables.records.IngenicoPaymentMethodsRecord;
@@ -62,6 +62,9 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
     private final IngenicoConfigurationHandler ingenicoConfigurationHandler;
     private final OSGIKillbillLogService logService;
 
+    // Shared properties
+    public static final String PROPERTY_MERCHANT_ID = "merchantId";
+
     // Credit cards
     public static final String PROPERTY_CC_ISSUER_COUNTRY = "issuerCountry";
 
@@ -73,10 +76,18 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
     public static final String PROPERTY_CUSTOMER_ID = "customerId";
     public static final String PROPERTY_EMAIL = "email";
 
-    public IngenicoPaymentPluginApi(final IngenicoConfigurationHandler ingenicoConfigurationHandler, OSGIKillbillAPI killbillAPI, OSGIConfigPropertiesService osgiConfigPropertiesService, Clock clock, PluginPaymentDao dao, final OSGIKillbillLogService logService) {
+    private final IngenicoDao dao;
+
+    public IngenicoPaymentPluginApi(final IngenicoConfigurationHandler ingenicoConfigurationHandler,
+                                    final OSGIKillbillAPI killbillAPI,
+                                    final OSGIConfigPropertiesService osgiConfigPropertiesService,
+                                    final OSGIKillbillLogService logService,
+                                    final Clock clock,
+                                    final IngenicoDao dao) {
         super(killbillAPI, osgiConfigPropertiesService, logService, clock, dao);
         this.ingenicoConfigurationHandler = ingenicoConfigurationHandler;
         this.logService = logService;
+        this.dao = dao;
     }
 
     @Override
@@ -105,7 +116,6 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
         } catch (final SQLException e) {
             throw new PaymentPluginApiException("Payment went through, but we encountered a database error. Payment details: " + response.toString(), e);
         }
-        return null;
     }
 
     private IngenicoPaymentMethodsRecord getIngenicoPaymentMethodsRecord(UUID kbPaymentMethodId, CallContext context) {
@@ -239,16 +249,15 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
         }
 
         final PaymentTransaction paymentTransaction = Iterables.<PaymentTransaction>find(payment.getTransactions(),
-                new Predicate<PaymentTransaction>() {
-                    @Override
-                    public boolean apply(final PaymentTransaction input) {
-                        return kbTransactionId.equals(input.getId());
-                    }
-                });
+                input -> kbTransactionId.equals(input.getId()));
 
-        //final PaymentInfo paymentInfo = buildPaymentInfo(account, paymentMethodsRecord, properties, context);
+        final PaymentInfo paymentInfo = buildPaymentInfo(account, paymentMethodsRecord, properties, context);
 
-        return new PaymentData<PaymentInfo>(amount, currency, paymentTransaction.getExternalKey());
+        return new PaymentData<>(amount, currency, paymentTransaction.getExternalKey(), paymentInfo);
+    }
+
+    private PaymentInfo buildPaymentInfo(AccountData account, IngenicoPaymentMethodsRecord paymentMethodsRecord, Iterable<PluginProperty> properties, TenantContext context) {
+        return PaymentInfoMappingService.toPaymentInfo(clock, account, paymentMethodsRecord, properties);
     }
 
     private String getMerchantAccount(final PaymentData paymentData, final Iterable<PluginProperty> properties, final TenantContext context) {
@@ -257,13 +266,7 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
     }
 
     private String getMerchantAccount(final String countryCode, final Iterable<PluginProperty> properties, final TenantContext context) {
-        final String pluginPropertyMerchantAccount = PluginProperties.findPluginPropertyValue(PROPERTY_PAYMENT_PROCESSOR_ACCOUNT_ID, properties);
-        if (pluginPropertyMerchantAccount != null) {
-            return pluginPropertyMerchantAccount;
-        }
-
-        // A bit of a hack - it would be nice to be able to isolate AdyenConfigProperties
-        final AdyenConfigProperties adyenConfigProperties = adyenHppConfigurationHandler.getConfigurable(context.getTenantId()).getAdyenConfigProperties();
-        return adyenConfigProperties.getMerchantAccount(countryCode);
+        final String pluginPropertyMerchantId = PluginProperties.findPluginPropertyValue(PROPERTY_MERCHANT_ID, properties);
+        return pluginPropertyMerchantId;
     }
 }

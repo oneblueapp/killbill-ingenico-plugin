@@ -3,6 +3,7 @@ package org.killbill.billing.plugin.ingenico.client;
 import com.ingenico.connect.gateway.sdk.java.Client;
 import com.ingenico.connect.gateway.sdk.java.CommunicatorConfiguration;
 import com.ingenico.connect.gateway.sdk.java.Factory;
+import com.ingenico.connect.gateway.sdk.java.defaultimpl.AuthorizationType;
 import com.ingenico.connect.gateway.sdk.java.domain.definitions.Address;
 import com.ingenico.connect.gateway.sdk.java.domain.definitions.AmountOfMoney;
 import com.ingenico.connect.gateway.sdk.java.domain.definitions.Card;
@@ -17,6 +18,7 @@ import org.killbill.billing.plugin.ingenico.client.model.UserData;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -27,6 +29,7 @@ import java.util.Properties;
 public class IngenicoClient implements Closeable {
 
     private static final String PROPERTY_PREFIX = "org.killbill.billing.plugin.ingenico.";
+    private static final String PROPERTY_ENDPOINT = PROPERTY_PREFIX + "endpoint";
     private static final String PROPERTY_API_KEY = PROPERTY_PREFIX + "apiKey";
     private static final String PROPERTY_API_SECRET = PROPERTY_PREFIX + "apiSecret";
     private final Client client;
@@ -36,9 +39,10 @@ public class IngenicoClient implements Closeable {
     }
 
     private Client createClient(Properties properties) {
-        CommunicatorConfiguration configuration = new CommunicatorConfiguration(properties)
-            .withApiKeyId(properties.getProperty(PROPERTY_API_KEY))
-            .withSecretApiKey(properties.getProperty(PROPERTY_API_SECRET));
+        CommunicatorConfiguration configuration = new CommunicatorConfiguration()
+                .withApiEndpoint(URI.create(properties.getProperty(PROPERTY_ENDPOINT)))
+                .withApiKeyId(properties.getProperty(PROPERTY_API_KEY))
+                .withSecretApiKey(properties.getProperty(PROPERTY_API_SECRET));
         return Factory.createClient(configuration);
     }
 
@@ -164,8 +168,21 @@ public class IngenicoClient implements Closeable {
         body.setCardPaymentMethodSpecificInput(cardPaymentMethodSpecificInput);
         body.setOrder(order);
         CreatePaymentResponse response = this.client.merchant("").payments().create(body);
-
-        return new PurchaseResult(response.getPayment().getStatus());
+        String merchantId = "";
+        Payment paymentResponse = response.getPayment();
+        PaymentOutput paymentOutput = paymentResponse.getPaymentOutput();
+        return new PurchaseResult(
+                merchantId,
+                paymentResponse.getId(),
+                paymentResponse.getStatus(),
+                paymentOutput.getPaymentMethod(),
+                paymentOutput.getReferences().getPaymentReference(),
+                paymentOutput.getCardPaymentMethodSpecificOutput().getAuthorisationCode(),
+                null,
+                null,
+                paymentOutput.getCardPaymentMethodSpecificOutput().getFraudResults().getAvsResult(),
+                paymentOutput.getCardPaymentMethodSpecificOutput().getFraudResults().getCvvResult(),
+                paymentOutput.getCardPaymentMethodSpecificOutput().getFraudResults().getFraudServiceResult());
     }
 
     @Override

@@ -35,79 +35,40 @@ public class PurchaseResult {
     public static final String UNKNOWN = "";
     private Optional<IngenicoCallErrorStatus> ingenicoCallErrorStatus;
 
-//    private final Optional<PaymentServiceProviderResult> result;
-//    private final String authCode;
-//    private final String pspReference;
-//    private final String reason;
-//    private final String resultCode;
-//    private final String reference;
-//    private final String paymentTransactionExternalKey;
-//    private final Map<String, String> additionalData;
+    private final String merchantId;
+    private final String transactionId;
+    private final String status;
+    private final String paymentMethod;
+    private final String paymentReference;
+    private final String authorisationCode;
+    private final String errorCode;
+    private final String errorMessage;
+    private final String avsResult;
+    private final String cvvResult;
+    private final String fraudServiceResult;
 
-//    public PurchaseResult(final String paymentTransactionExternalKey,
-//                          final AdyenCallResult<PaymentResult> adyenCallResult) {
-//        this(Optional.<PaymentServiceProviderResult>absent(),
-//             null,
-//             null,
-//             null,
-//             null,
-//             null,
-//             paymentTransactionExternalKey,
-//             null,
-//             null,
-//             adyenCallResult.getResponseStatus().isPresent() ? adyenCallResult.getResponseStatus().get() : null,
-//             ImmutableMap.<String, String>of(ADYEN_CALL_ERROR_STATUS, adyenCallResult.getResponseStatus().isPresent() ? adyenCallResult.getResponseStatus().get().name() : UNKNOWN,
-//                                             EXCEPTION_CLASS, adyenCallResult.getExceptionClass().isPresent() ? adyenCallResult.getExceptionClass().get() : UNKNOWN,
-//                                             EXCEPTION_MESSAGE, adyenCallResult.getExceptionMessage().isPresent() ? adyenCallResult.getExceptionMessage().get() : UNKNOWN));
-//    }
-//
-//    public PurchaseResult(final PaymentServiceProviderResult result,
-//                          final String authCode,
-//                          final String pspReference,
-//                          final String reason,
-//                          final String resultCode,
-//                          final String paymentTransactionExternalKey,
-//                          final String formUrl,
-//                          final Map<String, String> formParameter,
-//                          final Map<String, String> additionalData) {
-//        this(Optional.of(result), authCode, pspReference, reason, resultCode, null, paymentTransactionExternalKey, formUrl, formParameter, null, additionalData);
-//    }
-//
-//    public PurchaseResult(final PaymentServiceProviderResult result,
-//                          final String authCode,
-//                          final String pspReference,
-//                          final String reason,
-//                          final String resultCode,
-//                          final String paymentTransactionExternalKey,
-//                          final Map<String, String> additionalData) {
-//        this(Optional.of(result), authCode, pspReference, reason, resultCode, null, paymentTransactionExternalKey, null, null, null, additionalData);
-//    }
-//
-//    private PurchaseResult(final Optional<PaymentServiceProviderResult> result,
-//                           final String authCode,
-//                           final String pspReference,
-//                           final String reason,
-//                           @Nullable final String resultCode,
-//                           final String reference,
-//                           final String paymentTransactionExternalKey,
-//                           final String formUrl,
-//                           final Map<String, String> formParameter,
-//                           @Nullable final AdyenCallErrorStatus adyenCallErrorStatus,
-//                           final Map<String, String> additionalData) {
-//        super(firstNonNull(formParameter, ImmutableMap.<String, String>of()), formUrl);
-//
-//        this.adyenCallErrorStatus = adyenCallErrorStatus;
-//        this.result = result;
-//        this.authCode = authCode;
-//        this.pspReference = pspReference;
-//        this.reason = reason;
-//        this.resultCode = resultCode;
-//        this.reference = reference;
-//        this.paymentTransactionExternalKey = paymentTransactionExternalKey;
-//        this.additionalData = firstNonNull(additionalData, ImmutableMap.<String, String>of());
-//    }
-
-    public PurchaseResult(String status) {
+    public PurchaseResult(final String merchantId,
+                          final String transactionId,
+                          final String status,
+                          final String paymentMethod,
+                          final String paymentReference,
+                          final String authorisationCode,
+                          final String errorCode,
+                          final String errorMessage,
+                          final String avsResult,
+                          final String cvvResult,
+                          final String fraudServiceResult) {
+        this.merchantId = merchantId;
+        this.transactionId = transactionId;
+        this.status = status;
+        this.paymentMethod = paymentMethod;
+        this.paymentReference = paymentReference;
+        this.authorisationCode = authorisationCode;
+        this.errorCode = errorCode;
+        this.errorMessage = errorMessage;
+        this.avsResult = avsResult;
+        this.cvvResult = cvvResult;
+        this.fraudServiceResult = fraudServiceResult;
     }
 
     /**
@@ -213,5 +174,41 @@ public class PurchaseResult {
     public Optional<PaymentServiceProviderResult> getResult() {
         Optional<PaymentServiceProviderResult> result = null;
         return result;
+    }
+
+    public String getMerchantId() {
+        return merchantId;
+    }
+
+    public Object getPgProductiId() {
+        return transactionId;
+    }
+
+    public String getPgStatus() {
+        return status;
+    }
+
+    public String getPgTransactionMethod() {
+        return paymentMethod;
+    }
+
+    public String getPgReference() {
+        return paymentReference;
+    }
+
+    public String getPgAuthorizationCode() {
+        return authorisationCode;
+    }
+
+    public String getPgFraudAvsResult() {
+        return avsResult;
+    }
+
+    public String getPgFraudCvvResult() {
+        return cvvResult;
+    }
+
+    public String getPgFraudResult() {
+        return fraudServiceResult;
     }
 }

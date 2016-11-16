@@ -26,11 +26,13 @@ public class PaymentData<I extends PaymentInfo> {
     private final Long amount;
     private final Currency currency;
     private final String paymentTransactionExternalKey;
+    private final I paymentInfo;
 
-    public PaymentData(final BigDecimal amount, final Currency currency, final String paymentTransactionExternalKey) {
+    public PaymentData(final BigDecimal amount, final Currency currency, final String paymentTransactionExternalKey, final I paymentInfo) {
         this.amount = amount.setScale(0, BigDecimal.ROUND_UP).longValueExact();
         this.currency = currency;
         this.paymentTransactionExternalKey = paymentTransactionExternalKey;
+        this.paymentInfo = paymentInfo;
     }
 
     public Long getAmount() {
@@ -45,12 +47,17 @@ public class PaymentData<I extends PaymentInfo> {
         return paymentTransactionExternalKey;
     }
 
+    public I getPaymentInfo() {
+        return paymentInfo;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("PaymentData{");
         sb.append("amount=").append(amount);
         sb.append(", currency=").append(currency);
         sb.append(", paymentTransactionExternalKey='").append(paymentTransactionExternalKey).append('\'');
+        sb.append(", paymentInfo=").append(paymentInfo);
         sb.append('}');
         return sb.toString();
     }
@@ -72,7 +79,10 @@ public class PaymentData<I extends PaymentInfo> {
         if (currency != that.currency) {
             return false;
         }
-        return paymentTransactionExternalKey != null ? !paymentTransactionExternalKey.equals(that.paymentTransactionExternalKey) : that.paymentTransactionExternalKey != null;
+        if (paymentTransactionExternalKey != null ? !paymentTransactionExternalKey.equals(that.paymentTransactionExternalKey) : that.paymentTransactionExternalKey != null) {
+            return false;
+        }
+        return paymentInfo != null ? paymentInfo.equals(that.paymentInfo) : that.paymentInfo == null;
     }
 
     @Override
@@ -80,6 +90,7 @@ public class PaymentData<I extends PaymentInfo> {
         int result = amount != null ? amount.hashCode() : 0;
         result = 31 * result + (currency != null ? currency.hashCode() : 0);
         result = 31 * result + (paymentTransactionExternalKey != null ? paymentTransactionExternalKey.hashCode() : 0);
+        result = 31 * result + (paymentInfo != null ? paymentInfo.hashCode() : 0);
         return result;
     }
 }
