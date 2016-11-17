@@ -41,11 +41,13 @@ public class PurchaseResult {
     private final String paymentMethod;
     private final String paymentReference;
     private final String authorisationCode;
+    private final Integer productId;
     private final String errorCode;
     private final String errorMessage;
     private final String avsResult;
     private final String cvvResult;
     private final String fraudServiceResult;
+    private Map<String, String> formParams;
 
     public PurchaseResult(final String merchantId,
                           final String transactionId,
@@ -53,13 +55,15 @@ public class PurchaseResult {
                           final String paymentMethod,
                           final String paymentReference,
                           final String authorisationCode,
+                          final Integer productId,
                           final String errorCode,
                           final String errorMessage,
                           final String avsResult,
                           final String cvvResult,
-                          final String fraudServiceResult) {
+                          final String fraudServiceResult, Map<String, String> formParams) {
         this.merchantId = merchantId;
         this.transactionId = transactionId;
+        this.productId = productId;
         this.status = status;
         this.paymentMethod = paymentMethod;
         this.paymentReference = paymentReference;
@@ -69,6 +73,7 @@ public class PurchaseResult {
         this.avsResult = avsResult;
         this.cvvResult = cvvResult;
         this.fraudServiceResult = fraudServiceResult;
+        this.formParams = formParams;
     }
 
     /**
@@ -180,7 +185,7 @@ public class PurchaseResult {
         return merchantId;
     }
 
-    public Object getPgProductiId() {
+    public String getPgTransactionId() {
         return transactionId;
     }
 
@@ -200,6 +205,10 @@ public class PurchaseResult {
         return authorisationCode;
     }
 
+    public Integer getPgProductiId() {
+        return productId;
+    }
+
     public String getPgFraudAvsResult() {
         return avsResult;
     }
@@ -210,5 +219,17 @@ public class PurchaseResult {
 
     public String getPgFraudResult() {
         return fraudServiceResult;
+    }
+
+    public Map getFormParameter() {
+        return formParams;
+    }
+
+    public String getPgErrorCode() {
+        return errorCode;
+    }
+
+    public String getPgErrorMessage() {
+        return errorMessage;
     }
 }

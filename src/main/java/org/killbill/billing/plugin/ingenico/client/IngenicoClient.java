@@ -19,9 +19,7 @@ import org.killbill.billing.plugin.ingenico.client.model.UserData;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * Created by otaviosoares on 14/11/16.
@@ -171,6 +169,18 @@ public class IngenicoClient implements Closeable {
         String merchantId = "";
         Payment paymentResponse = response.getPayment();
         PaymentOutput paymentOutput = paymentResponse.getPaymentOutput();
+
+
+        final Map<String, String> formParams = new HashMap<String, String>();
+//        formParams.put(AdyenPaymentPluginApi.PROPERTY_PA_REQ, result.getPaRequest());
+//        formParams.put(AdyenPaymentPluginApi.PROPERTY_MD, result.getMd());
+//        formParams.put(AdyenPaymentPluginApi.PROPERTY_DCC_AMOUNT_VALUE, result.getDccAmount() == null ? null : String.valueOf(result.getDccAmount().getValue()));
+//        formParams.put(AdyenPaymentPluginApi.PROPERTY_DCC_AMOUNT_CURRENCY, result.getDccAmount() == null ? null : result.getDccAmount().getCurrency());
+//        formParams.put(AdyenPaymentPluginApi.PROPERTY_DCC_SIGNATURE, result.getDccSignature());
+//        formParams.put(AdyenPaymentPluginApi.PROPERTY_ISSUER_URL, result.getIssuerUrl());
+//        formParams.putAll(extractMpiAdditionalData(result));
+//        formParams.put(AdyenPaymentPluginApi.PROPERTY_TERM_URL, paymentData.getPaymentInfo().getTermUrl());
+
         return new PurchaseResult(
                 merchantId,
                 paymentResponse.getId(),
@@ -178,11 +188,13 @@ public class IngenicoClient implements Closeable {
                 paymentOutput.getPaymentMethod(),
                 paymentOutput.getReferences().getPaymentReference(),
                 paymentOutput.getCardPaymentMethodSpecificOutput().getAuthorisationCode(),
+                paymentOutput.getCardPaymentMethodSpecificOutput().getPaymentProductId(),
                 null,
                 null,
                 paymentOutput.getCardPaymentMethodSpecificOutput().getFraudResults().getAvsResult(),
                 paymentOutput.getCardPaymentMethodSpecificOutput().getFraudResults().getCvvResult(),
-                paymentOutput.getCardPaymentMethodSpecificOutput().getFraudResults().getFraudServiceResult());
+                paymentOutput.getCardPaymentMethodSpecificOutput().getFraudResults().getFraudServiceResult(),
+                formParams);
     }
 
     @Override

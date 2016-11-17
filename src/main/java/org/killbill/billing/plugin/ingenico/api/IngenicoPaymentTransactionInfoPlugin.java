@@ -14,18 +14,16 @@
  * under the License.
  */
 
-package org.killbill.billing.plugin.ingenico;
+package org.killbill.billing.plugin.ingenico.api;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.killbill.billing.catalog.api.Currency;
 import org.killbill.billing.payment.api.TransactionType;
 import org.killbill.billing.payment.plugin.api.PaymentPluginStatus;
 import org.killbill.billing.plugin.api.PluginProperties;
 import org.killbill.billing.plugin.api.payment.PluginPaymentTransactionInfoPlugin;
-import org.killbill.billing.plugin.ingenico.client.model.PaymentModificationResponse;
 import org.killbill.billing.plugin.ingenico.client.model.PaymentServiceProviderResult;
 import org.killbill.billing.plugin.ingenico.client.model.PurchaseResult;
 import org.killbill.billing.plugin.ingenico.client.model.api.IngenicoCallErrorStatus;
@@ -36,8 +34,6 @@ import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.util.Map;
 import java.util.UUID;
-
-import static com.google.common.base.Preconditions.checkArgument;
 
 public class IngenicoPaymentTransactionInfoPlugin extends PluginPaymentTransactionInfoPlugin {
 
@@ -58,91 +54,37 @@ public class IngenicoPaymentTransactionInfoPlugin extends PluginPaymentTransacti
               getPaymentPluginStatus(purchaseResult.getIngenicoCallErrorStatus(), purchaseResult.getResult()),
               getGatewayError(purchaseResult),
               truncate(getGatewayErrorCode(purchaseResult)),
-              purchaseResult.getPspReference(),
-              purchaseResult.getAuthCode(),
+              purchaseResult.getPgTransactionId(),
+              purchaseResult.getPgAuthorizationCode(),
               utcNow,
               utcNow,
               PluginProperties.buildPluginProperties(purchaseResult.getFormParameter()));
     }
 
-    public IngenicoPaymentTransactionInfoPlugin(final UUID kbPaymentId,
-                                                final UUID kbTransactionPaymentPaymentId,
-                                                final TransactionType transactionType,
-                                                final BigDecimal amount,
-                                                @Nullable final Currency currency,
-                                                final Optional<PaymentServiceProviderResult> pspResult,
-                                                final DateTime utcNow,
-                                                final PaymentModificationResponse paymentModificationResponse) {
-        super(kbPaymentId,
-              kbTransactionPaymentPaymentId,
-              transactionType,
-              amount,
-              currency,
-              getPaymentPluginStatus(paymentModificationResponse.getIngenicoCallErrorStatus(), pspResult),
-              getGatewayError(paymentModificationResponse),
-              truncate(getGatewayErrorCode(paymentModificationResponse)),
-              paymentModificationResponse.getPspReference(),
-              null,
-              utcNow,
-              utcNow,
-              PluginProperties.buildPluginProperties(paymentModificationResponse.getAdditionalData()));
-    }
-
-    public IngenicoPaymentTransactionInfoPlugin(final IngenicoResponsesRecord record) {
-        super(UUID.fromString(record.getKbPaymentId()),
-              UUID.fromString(record.getKbPaymentTransactionId()),
-              TransactionType.valueOf(record.getTransactionType()),
-              record.getAmount(),
-              Strings.isNullOrEmpty(record.getCurrency()) ? null : Currency.valueOf(record.getCurrency()),
-              getPaymentPluginStatus(record),
-              getGatewayError(record),
-              truncate(getGatewayErrorCode(record)),
-              record.getPspReference(),
-              record.getAuthCode(),
-              new DateTime(record.getCreatedDate(), DateTimeZone.UTC),
-              new DateTime(record.getCreatedDate(), DateTimeZone.UTC),
-              IngenicoModelPluginBase.buildPluginProperties(record.getAdditionalData()));
-    }
-
-    @Override
-    public PaymentPluginStatus getStatus() {
-        final String hppTransactionStatus = PluginProperties.findPluginPropertyValue(IngenicoPaymentPluginApi.PROPERTY_FROM_HPP_TRANSACTION_STATUS, getProperties());
-        if (hppTransactionStatus != null) {
-            return PaymentPluginStatus.valueOf(hppTransactionStatus);
-        } else {
-            return super.getStatus();
-        }
-    }
-
     private static String getGatewayError(final PurchaseResult purchaseResult) {
-        return purchaseResult.getReason() != null ? purchaseResult.getReason() : purchaseResult.getAdditionalData().get(PurchaseResult.EXCEPTION_MESSAGE);
-    }
-
-    private static String getGatewayError(final PaymentModificationResponse paymentModificationResponse) {
-        return toString(paymentModificationResponse.getAdditionalData().get(PurchaseResult.EXCEPTION_MESSAGE));
+        //return purchaseResult.getReason() != null ? purchaseResult.getReason() : purchaseResult.getAdditionalData().get(PurchaseResult.EXCEPTION_MESSAGE);
+        return null;
     }
 
     private static String getGatewayError(final IngenicoResponsesRecord record) {
-        return record.getRefusalReason() != null ? record.getRefusalReason() : toString(IngenicoDao.fromAdditionalData(record.getAdditionalData()).get(PurchaseResult.EXCEPTION_MESSAGE));
+        //return record.getRefusalReason() != null ? record.getRefusalReason() : toString(IngenicoDao.fromAdditionalData(record.getAdditionalData()).get(PurchaseResult.EXCEPTION_MESSAGE));
+        return null;
     }
 
     private static String getGatewayErrorCode(final PurchaseResult purchaseResult) {
-        return purchaseResult.getResultCode() != null ? purchaseResult.getResultCode() : getExceptionClass(purchaseResult.getAdditionalData());
-    }
-
-    private static String getGatewayErrorCode(final PaymentModificationResponse paymentModificationResponse) {
-        return paymentModificationResponse.getResponse() != null ? paymentModificationResponse.getResponse() : getExceptionClass(paymentModificationResponse.getAdditionalData());
+        return null;
+        //return purchaseResult.getResultCode() != null ? purchaseResult.getResultCode() : getExceptionClass(purchaseResult.getAdditionalData());
     }
 
     private static String getGatewayErrorCode(final IngenicoResponsesRecord record) {
-        if (record.getResultCode() != null) {
-            return record.getResultCode();
-        } else if (record.getPspResult() != null) {
-            // PaymentModificationResponse
-            return record.getPspResult();
-        } else {
-            return getExceptionClass(IngenicoDao.fromAdditionalData(record.getAdditionalData()));
-        }
+        return  null;
+//        if (record.getResultCode() != null) {
+//            return record.getResultCode();
+//        } else if (record.getPspResult() != null) {
+//            return record.getPspResult();
+//        } else {
+//            return getExceptionClass(IngenicoDao.fromAdditionalData(record.getAdditionalData()));
+//        }
     }
 
     /**
@@ -150,46 +92,50 @@ public class IngenicoPaymentTransactionInfoPlugin extends PluginPaymentTransacti
      * Therefor only one of the given params should be present (if there was a technical error we don't have a psp result and the other way around).
      */
     private static PaymentPluginStatus getPaymentPluginStatus(final Optional<IngenicoCallErrorStatus> ingenicoCallErrorStatus, final Optional<PaymentServiceProviderResult> pspResult) {
-        checkArgument(IngenicoCallErrorStatus.isPresent() ^ pspResult.isPresent());
-        return (pspResult.isPresent()) ? pspResultToPaymentPluginStatus(pspResult.get()) : IngenicoCallErrorStatusToPaymentPluginStatus(ingenicoCallErrorStatus.get());
+        return null;
+//        checkArgument(IngenicoCallErrorStatus.isPresent() ^ pspResult.isPresent());
+//        return (pspResult.isPresent()) ? pspResultToPaymentPluginStatus(pspResult.get()) : IngenicoCallErrorStatusToPaymentPluginStatus(ingenicoCallErrorStatus.get());
     }
 
     private static PaymentPluginStatus getPaymentPluginStatus(final Optional<PaymentServiceProviderResult> pspResult) {
-        return (pspResult.isPresent()) ? pspResultToPaymentPluginStatus(pspResult.get()) : ingenicoCallErrorStatusToPaymentPluginStatus(IngenicoCallErrorStatus.UNKNOWN_FAILURE);
+        return null;
+//        return (pspResult.isPresent()) ? pspResultToPaymentPluginStatus(pspResult.get()) : ingenicoCallErrorStatusToPaymentPluginStatus(IngenicoCallErrorStatus.UNKNOWN_FAILURE);
     }
 
     private static PaymentPluginStatus getPaymentPluginStatus(final IngenicoResponsesRecord record) {
-        if (Strings.isNullOrEmpty(record.getPspResult())) {
-            final String ingenicoCallErrorStatusString = toString(IngenicoDao.fromAdditionalData(record.getAdditionalData()).get(PurchaseResult.INGENICO_CALL_ERROR_STATUS));
-            final IngenicoCallErrorStatus ingenicoCallErrorStatus;
-            if (Strings.isNullOrEmpty(ingenicoCallErrorStatusString)) {
-                ingenicoCallErrorStatus = IngenicoCallErrorStatus.UNKNOWN_FAILURE;
-            } else {
-                ingenicoCallErrorStatus = IngenicoCallErrorStatus.valueOf(ingenicoCallErrorStatusString);
-            }
-            return ingenicoCallErrorStatusToPaymentPluginStatus(ingenicoCallErrorStatus);
-        } else {
-            final PaymentServiceProviderResult paymentResult = PaymentServiceProviderResult.getPaymentResultForId(record.getResultCode() != null ? record.getResultCode() : record.getPspResult());
-            final Optional<PaymentServiceProviderResult> pspResult = Optional.of(paymentResult);
-            return getPaymentPluginStatus(pspResult);
-        }
+        return null;
+//        if (Strings.isNullOrEmpty(record.getPspResult())) {
+//            final String ingenicoCallErrorStatusString = toString(IngenicoDao.fromAdditionalData(record.getAdditionalData()).get(PurchaseResult.INGENICO_CALL_ERROR_STATUS));
+//            final IngenicoCallErrorStatus ingenicoCallErrorStatus;
+//            if (Strings.isNullOrEmpty(ingenicoCallErrorStatusString)) {
+//                ingenicoCallErrorStatus = IngenicoCallErrorStatus.UNKNOWN_FAILURE;
+//            } else {
+//                ingenicoCallErrorStatus = IngenicoCallErrorStatus.valueOf(ingenicoCallErrorStatusString);
+//            }
+//            return ingenicoCallErrorStatusToPaymentPluginStatus(ingenicoCallErrorStatus);
+//        } else {
+//            final PaymentServiceProviderResult paymentResult = PaymentServiceProviderResult.getPaymentResultForId(record.getResultCode() != null ? record.getResultCode() : record.getPspResult());
+//            final Optional<PaymentServiceProviderResult> pspResult = Optional.of(paymentResult);
+//            return getPaymentPluginStatus(pspResult);
+//        }
     }
 
     private static PaymentPluginStatus ingenicoCallErrorStatusToPaymentPluginStatus(final IngenicoCallErrorStatus ingenicoCallErrorStatus) {
-        switch (ingenicoCallErrorStatus) {
-            case REQUEST_NOT_SEND:
-                return PaymentPluginStatus.CANCELED;
-            case RESPONSE_ABOUT_INVALID_REQUEST:
-                return PaymentPluginStatus.CANCELED;
-            case RESPONSE_NOT_RECEIVED:
-                return PaymentPluginStatus.UNDEFINED;
-            case RESPONSE_INVALID:
-                return PaymentPluginStatus.UNDEFINED;
-            case UNKNOWN_FAILURE:
-                return PaymentPluginStatus.UNDEFINED;
-            default:
-                return PaymentPluginStatus.UNDEFINED;
-        }
+        return null;
+//        switch (ingenicoCallErrorStatus) {
+//            case REQUEST_NOT_SEND:
+//                return PaymentPluginStatus.CANCELED;
+//            case RESPONSE_ABOUT_INVALID_REQUEST:
+//                return PaymentPluginStatus.CANCELED;
+//            case RESPONSE_NOT_RECEIVED:
+//                return PaymentPluginStatus.UNDEFINED;
+//            case RESPONSE_INVALID:
+//                return PaymentPluginStatus.UNDEFINED;
+//            case UNKNOWN_FAILURE:
+//                return PaymentPluginStatus.UNDEFINED;
+//            default:
+//                return PaymentPluginStatus.UNDEFINED;
+//        }
     }
 
     private static PaymentPluginStatus pspResultToPaymentPluginStatus(final PaymentServiceProviderResult pspResult) {

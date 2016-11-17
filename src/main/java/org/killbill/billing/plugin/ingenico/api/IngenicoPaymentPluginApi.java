@@ -27,7 +27,6 @@ import org.killbill.billing.payment.api.*;
 import org.killbill.billing.payment.plugin.api.*;
 import org.killbill.billing.plugin.api.PluginProperties;
 import org.killbill.billing.plugin.api.payment.PluginPaymentPluginApi;
-import org.killbill.billing.plugin.ingenico.IngenicoPaymentTransactionInfoPlugin;
 import org.killbill.billing.plugin.ingenico.api.mapping.PaymentInfoMappingService;
 import org.killbill.billing.plugin.ingenico.client.IngenicoClient;
 import org.killbill.billing.plugin.ingenico.client.model.*;

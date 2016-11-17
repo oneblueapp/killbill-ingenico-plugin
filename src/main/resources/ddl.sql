@@ -9,11 +9,12 @@ create table ingenico_responses (
 , amount numeric(15,9)
 , currency char(3)
 , pg_merchant_id varchar(255) not null
-, pg_product_id int(3) not null
+, pg_transaction_id varchar(255) not null
 , pg_status varchar(255) not null
 , pg_transaction_method varchar(255)
 , pg_reference varchar(64)
 , pg_authorization_code varchar(255) null
+, pg_product_id int(3) null
 , pg_error_code varchar(64) null
 , pg_error_message varchar(255) null
 , pg_fraud_avs_result char(1) null
