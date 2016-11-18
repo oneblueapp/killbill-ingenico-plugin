@@ -19,6 +19,8 @@ import org.killbill.billing.plugin.ingenico.client.model.UserData;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.*;
 
 /**
@@ -27,21 +29,32 @@ import java.util.*;
 public class IngenicoClient implements Closeable {
 
     private static final String PROPERTY_PREFIX = "org.killbill.billing.plugin.ingenico.";
-    private static final String PROPERTY_ENDPOINT = PROPERTY_PREFIX + "endpoint";
+    private static final String PROPERTY_AUTHORIZATION_TYPE = PROPERTY_PREFIX + "authorizationType";
+    private static final String PROPERTY_CONNECT_TIMEOUT = PROPERTY_PREFIX + "connectTimeout";
+    private static final String PROPERTY_SOCKET_TIMEOUT = PROPERTY_PREFIX + "socketTimeout";
+    private static final String PROPERTY_MAX_CONNECTIONS = PROPERTY_PREFIX + "maxConnections";
+    private static final String PROPERTY_INTEGRATOR = PROPERTY_PREFIX + "integrator";
+    private static final String PROPERTY_ENDPOINT_HOST = PROPERTY_PREFIX + "endpoint.host";
     private static final String PROPERTY_API_KEY = PROPERTY_PREFIX + "apiKey";
     private static final String PROPERTY_API_SECRET = PROPERTY_PREFIX + "apiSecret";
-    private final Client client;
+    private Client client;
 
     public IngenicoClient(Properties properties) {
         this.client = createClient(properties);
     }
 
     private Client createClient(Properties properties) {
-        CommunicatorConfiguration configuration = new CommunicatorConfiguration()
-                .withApiEndpoint(URI.create(properties.getProperty(PROPERTY_ENDPOINT)))
-                .withApiKeyId(properties.getProperty(PROPERTY_API_KEY))
-                .withSecretApiKey(properties.getProperty(PROPERTY_API_SECRET));
-        return Factory.createClient(configuration);
+        URL propertiesURL = getClass().getResource("/default-configuration.properties");
+
+        CommunicatorConfiguration configuration = null;
+        try {
+            configuration = Factory.createConfiguration(
+                    propertiesURL.toURI(),
+                    properties.getProperty(PROPERTY_API_KEY, "init"),
+                    properties.getProperty(PROPERTY_API_SECRET, "init"));
+        } finally {
+            return Factory.createClient(configuration);
+        }
     }
 
     public PurchaseResult create(PaymentData paymentData, UserData userData, SplitSettlementData splitSettlementData) {

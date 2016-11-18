@@ -26,8 +26,6 @@ import javax.servlet.http.HttpServlet;
 import org.killbill.billing.osgi.api.OSGIPluginProperties;
 import org.killbill.billing.payment.plugin.api.PaymentPluginApi;
 import org.killbill.billing.plugin.api.notification.PluginConfigurationEventHandler;
-import org.killbill.billing.plugin.dao.payment.PluginPaymentDao;
-import org.killbill.billing.plugin.ingenico.IngenicoListener;
 import org.killbill.billing.plugin.ingenico.api.IngenicoPaymentPluginApi;
 import org.killbill.billing.plugin.ingenico.client.IngenicoClient;
 import org.killbill.billing.plugin.ingenico.dao.IngenicoDao;
