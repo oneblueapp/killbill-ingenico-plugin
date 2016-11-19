@@ -53,8 +53,8 @@ public class IngenicoActivator extends KillbillActivatorBase {
         final IngenicoDao dao = new IngenicoDao(dataSource.getDataSource());
 
         // Register an event listener (optional)
-        killbillEventHandler = new IngenicoListener(logService, killbillAPI);
-        registerEventHandlerWhenPluginStart(killbillEventHandler);
+//        killbillEventHandler = new IngenicoListener(logService, killbillAPI);
+//        registerEventHandlerWhenPluginStart(killbillEventHandler);
 
         final IngenicoClient globalIngenicoClient = ingenicoConfigurationHandler.createConfigurable(configProperties.getProperties());
         ingenicoConfigurationHandler.setDefaultConfigurable(globalIngenicoClient);

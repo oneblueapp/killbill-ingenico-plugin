@@ -2,6 +2,7 @@ package org.killbill.billing.plugin.ingenico.core;
 
 import org.killbill.billing.plugin.api.notification.PluginTenantConfigurableConfigurationHandler;
 import org.killbill.billing.plugin.ingenico.client.IngenicoClient;
+import org.killbill.billing.plugin.ingenico.client.IngenicoConfigProperties;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillAPI;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 import java.util.Properties;
@@ -16,6 +17,7 @@ public class IngenicoConfigurationHandler extends PluginTenantConfigurableConfig
 
     @Override
     protected IngenicoClient createConfigurable(final Properties properties) {
-        return new IngenicoClient(properties);
+        final IngenicoConfigProperties ingenicoConfigProperties = new IngenicoConfigProperties(properties);
+        return new IngenicoClient(ingenicoConfigProperties);
     }
 }

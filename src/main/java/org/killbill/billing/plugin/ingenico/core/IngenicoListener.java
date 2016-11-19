@@ -21,25 +21,17 @@ import org.killbill.billing.account.api.Account;
 import org.killbill.billing.account.api.AccountApiException;
 import org.killbill.billing.notification.plugin.api.ExtBusEvent;
 import org.killbill.billing.plugin.api.PluginTenantContext;
-import org.killbill.billing.plugin.api.notification.PluginConfigurationEventHandler;
-import org.killbill.billing.plugin.api.notification.PluginConfigurationHandler;
-import org.killbill.billing.plugin.ingenico.core.IngenicoActivator;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillAPI;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillEventDispatcher.OSGIKillbillEventHandler;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 import org.osgi.service.log.LogService;
 
-import javax.annotation.Nullable;
-import java.util.Properties;
-import java.util.UUID;
-
-public class IngenicoListener extends PluginConfigurationEventHandler implements OSGIKillbillEventHandler {
+public class IngenicoListener implements OSGIKillbillEventHandler {
 
     private final LogService logService;
     private final OSGIKillbillAPI osgiKillbillAPI;
 
     public IngenicoListener(final OSGIKillbillLogService logService, final OSGIKillbillAPI killbillAPI) {
-        super(new IngenicoPluginConfigurationHandler(IngenicoActivator.PLUGIN_NAME, killbillAPI, logService));
         this.logService = logService;
         this.osgiKillbillAPI = killbillAPI;
     }
@@ -52,14 +44,6 @@ public class IngenicoListener extends PluginConfigurationEventHandler implements
                 " of type " + killbillEvent.getObjectType());
 
         switch (killbillEvent.getEventType()) {
-            //
-            // Calls java plugin framework PluginConfigurationEventHandler to handle TENANT_CONFIG_CHANGE/TENANT_CONFIG_DELETION events
-            //
-            case TENANT_CONFIG_CHANGE:
-            case TENANT_CONFIG_DELETION:
-                super.handleKillbillEvent(killbillEvent);
-                break;
-
             //
             // Handle ACCOUNT_CREATION and ACCOUNT_CHANGE (only) for demo purpose and just print the account
             //
@@ -77,42 +61,6 @@ public class IngenicoListener extends PluginConfigurationEventHandler implements
             default:
                 break;
 
-        }
-    }
-
-    //
-    // The goal is just to show-case that when per-tenant config changes are made, the plugin automatically gets notified (and prints a log trace)
-    //
-    // curl \
-    // -X POST \
-    // -u admin:password \
-    // -H "Accept: application/json" \
-    // -H "Content-Type: text/plain" \
-    // -H "X-Killbill-ApiKey: bob" \
-    // -H "X-Killbill-ApiSecret: lazar" \
-    // -H "Cache-Control: no-cache"  \
-    // -d 'key1=foo1 key2=foo2'
-    // "http://127.0.0.1:8080/1.0/kb/tenants/uploadPluginConfig/hello-world-plugin"
-    //
-    private static class IngenicoPluginConfigurationHandler extends PluginConfigurationHandler {
-
-        private final LogService logService;
-
-        public IngenicoPluginConfigurationHandler(String pluginName, OSGIKillbillAPI osgiKillbillAPI, OSGIKillbillLogService osgiKillbillLogService) {
-            super(pluginName, osgiKillbillAPI, osgiKillbillLogService);
-            this.logService = osgiKillbillLogService;
-        }
-
-        @Override
-        protected void configure(@Nullable UUID kbTenantId) {
-            final Properties properties = getTenantConfigurationAsProperties(kbTenantId);
-            if (properties == null) {
-                // Invalid configuration or tenant not configured, we will default to the global configurable (or previous configuration)
-                return;
-            }
-
-            logService.log(LogService.LOG_INFO, String.format("Properties for tenant='%s': properties='%s'",
-                    kbTenantId, properties.stringPropertyNames()));
         }
     }
 }

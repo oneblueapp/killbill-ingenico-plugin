@@ -18,6 +18,7 @@
 package org.killbill.billing.plugin.ingenico.api;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.joda.time.DateTime;
 import org.killbill.billing.account.api.Account;
@@ -26,6 +27,7 @@ import org.killbill.billing.catalog.api.Currency;
 import org.killbill.billing.payment.api.*;
 import org.killbill.billing.payment.plugin.api.*;
 import org.killbill.billing.plugin.api.PluginProperties;
+import org.killbill.billing.plugin.api.payment.PluginPaymentMethodPlugin;
 import org.killbill.billing.plugin.api.payment.PluginPaymentPluginApi;
 import org.killbill.billing.plugin.ingenico.api.mapping.PaymentInfoMappingService;
 import org.killbill.billing.plugin.ingenico.client.IngenicoClient;
@@ -48,7 +50,9 @@ import org.osgi.service.log.LogService;
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.killbill.billing.plugin.ingenico.api.mapping.UserDataMappingService.toUserData;
@@ -88,6 +92,8 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
         this.logService = logService;
         this.dao = dao;
     }
+
+
 
     @Override
     public PaymentTransactionInfoPlugin authorizePayment(final UUID kbAccountId, final UUID kbPaymentId, final UUID kbTransactionId, final UUID kbPaymentMethodId, final BigDecimal amount, final Currency currency, final Iterable<PluginProperty> properties, final CallContext context) throws PaymentPluginApiException {
@@ -188,7 +194,27 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
 
     @Override
     public void addPaymentMethod(final UUID kbAccountId, final UUID kbPaymentMethodId, final PaymentMethodPlugin paymentMethodProps, final boolean setDefault, final Iterable<PluginProperty> properties, final CallContext context) throws PaymentPluginApiException {
+        // The resulting map from toStringMap may not be mutable
+        final Map<String, String> safePropertiesMap = new HashMap<String, String>(PluginProperties.toStringMap(paymentMethodProps.getProperties(), properties));
+        final IngenicoClient client = ingenicoConfigurationHandler.getConfigurable(context.getTenantId());
 
+        // TODO add option to skip tokenization
+        // TODO create customers (payment methods are not searchable in the VT)
+        final String token;
+        token = client.tokenizeCreditCard(safePropertiesMap.get(PROPERTY_CC_FIRST_NAME),
+                                          safePropertiesMap.get(PROPERTY_CC_LAST_NAME),
+                                          safePropertiesMap.get(PROPERTY_CC_NUMBER),
+                                          safePropertiesMap.get(PROPERTY_CC_EXPIRATION_MONTH),
+                                          safePropertiesMap.get(PROPERTY_CC_EXPIRATION_YEAR));
+        safePropertiesMap.put(PROPERTY_TOKEN, token);
+
+        // Delete sensitive data
+        safePropertiesMap.remove(PROPERTY_CC_NUMBER);
+        //safePropertiesMap.remove(PROPERTY_ACCOUNT_NUMBER);
+        final PluginPaymentMethodPlugin safePaymentMethodProps = new PluginPaymentMethodPlugin(kbPaymentMethodId, token, setDefault, ImmutableList.<PluginProperty>of());
+
+        final Iterable<PluginProperty> safeProperties = PluginProperties.buildPluginProperties(safePropertiesMap);
+        super.addPaymentMethod(kbAccountId, kbPaymentMethodId, safePaymentMethodProps, setDefault, safeProperties, context);
     }
 
     @Override

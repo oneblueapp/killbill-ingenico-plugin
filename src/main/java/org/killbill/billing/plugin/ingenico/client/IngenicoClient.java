@@ -28,33 +28,19 @@ import java.util.*;
  */
 public class IngenicoClient implements Closeable {
 
-    private static final String PROPERTY_PREFIX = "org.killbill.billing.plugin.ingenico.";
-    private static final String PROPERTY_AUTHORIZATION_TYPE = PROPERTY_PREFIX + "authorizationType";
-    private static final String PROPERTY_CONNECT_TIMEOUT = PROPERTY_PREFIX + "connectTimeout";
-    private static final String PROPERTY_SOCKET_TIMEOUT = PROPERTY_PREFIX + "socketTimeout";
-    private static final String PROPERTY_MAX_CONNECTIONS = PROPERTY_PREFIX + "maxConnections";
-    private static final String PROPERTY_INTEGRATOR = PROPERTY_PREFIX + "integrator";
-    private static final String PROPERTY_ENDPOINT_HOST = PROPERTY_PREFIX + "endpoint.host";
-    private static final String PROPERTY_API_KEY = PROPERTY_PREFIX + "apiKey";
-    private static final String PROPERTY_API_SECRET = PROPERTY_PREFIX + "apiSecret";
+    private final IngenicoConfigProperties properties;
     private Client client;
 
-    public IngenicoClient(Properties properties) {
+    public IngenicoClient(IngenicoConfigProperties properties) {
+        this.properties = properties;
         this.client = createClient(properties);
     }
 
-    private Client createClient(Properties properties) {
-        URL propertiesURL = getClass().getResource("/default-configuration.properties");
-
-        CommunicatorConfiguration configuration = null;
-        try {
-            configuration = Factory.createConfiguration(
-                    propertiesURL.toURI(),
-                    properties.getProperty(PROPERTY_API_KEY, "init"),
-                    properties.getProperty(PROPERTY_API_SECRET, "init"));
-        } finally {
-            return Factory.createClient(configuration);
-        }
+    private Client createClient(IngenicoConfigProperties properties) {
+        CommunicatorConfiguration configuration = new CommunicatorConfiguration(properties.toProperties())
+                .withApiKeyId(properties.getApiKey())
+                .withSecretApiKey(properties.getApiSecret());
+        return Factory.createClient(configuration);
     }
 
     public PurchaseResult create(PaymentData paymentData, UserData userData, SplitSettlementData splitSettlementData) {
@@ -178,8 +164,8 @@ public class IngenicoClient implements Closeable {
         CreatePaymentRequest body = new CreatePaymentRequest();
         body.setCardPaymentMethodSpecificInput(cardPaymentMethodSpecificInput);
         body.setOrder(order);
+        String merchantId = this.properties.getMerchantId();
         CreatePaymentResponse response = this.client.merchant("").payments().create(body);
-        String merchantId = "";
         Payment paymentResponse = response.getPayment();
         PaymentOutput paymentOutput = paymentResponse.getPaymentOutput();
 
@@ -213,5 +199,9 @@ public class IngenicoClient implements Closeable {
     @Override
     public void close() throws IOException {
         this.client.close();
+    }
+
+    public String tokenizeCreditCard(final String s, final String s1, final String s2, final String s3, final String s4) {
+        return "THE TOKEN";
     }
 }
