@@ -32,6 +32,7 @@ import org.killbill.billing.plugin.api.payment.PluginPaymentPluginApi;
 import org.killbill.billing.plugin.ingenico.api.mapping.PaymentInfoMappingService;
 import org.killbill.billing.plugin.ingenico.client.IngenicoClient;
 import org.killbill.billing.plugin.ingenico.client.model.*;
+import org.killbill.billing.plugin.ingenico.client.model.paymentinfo.Card;
 import org.killbill.billing.plugin.ingenico.core.IngenicoConfigurationHandler;
 import org.killbill.billing.plugin.ingenico.dao.IngenicoDao;
 import org.killbill.billing.plugin.ingenico.dao.gen.tables.IngenicoPaymentMethods;
@@ -76,7 +77,6 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
     public static final String PROPERTY_LAST_NAME = "lastName";
     public static final String PROPERTY_IP = "ip";
     public static final String PROPERTY_CUSTOMER_LOCALE = "customerLocale";
-    public static final String PROPERTY_CUSTOMER_ID = "customerId";
     public static final String PROPERTY_EMAIL = "email";
 
     private final IngenicoDao dao;
@@ -194,18 +194,15 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
 
     @Override
     public void addPaymentMethod(final UUID kbAccountId, final UUID kbPaymentMethodId, final PaymentMethodPlugin paymentMethodProps, final boolean setDefault, final Iterable<PluginProperty> properties, final CallContext context) throws PaymentPluginApiException {
-        // The resulting map from toStringMap may not be mutable
         final Map<String, String> safePropertiesMap = new HashMap<String, String>(PluginProperties.toStringMap(paymentMethodProps.getProperties(), properties));
         final IngenicoClient client = ingenicoConfigurationHandler.getConfigurable(context.getTenantId());
 
-        // TODO add option to skip tokenization
-        // TODO create customers (payment methods are not searchable in the VT)
-        final String token;
-        token = client.tokenizeCreditCard(safePropertiesMap.get(PROPERTY_CC_FIRST_NAME),
-                                          safePropertiesMap.get(PROPERTY_CC_LAST_NAME),
-                                          safePropertiesMap.get(PROPERTY_CC_NUMBER),
-                                          safePropertiesMap.get(PROPERTY_CC_EXPIRATION_MONTH),
-                                          safePropertiesMap.get(PROPERTY_CC_EXPIRATION_YEAR));
+        final Account account = getAccount(kbAccountId, context);
+        final Card paymentInfo = (Card) buildPaymentInfo(account, properties, context);
+
+        final UserData userData = toUserData(account, properties);
+        final String cardAlias = safePropertiesMap.getOrDefault("", "My card");
+        final String token = client.tokenizeCreditCard(paymentInfo, userData, cardAlias);
         safePropertiesMap.put(PROPERTY_TOKEN, token);
 
         // Delete sensitive data
@@ -283,6 +280,10 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
 
     private PaymentInfo buildPaymentInfo(AccountData account, IngenicoPaymentMethodsRecord paymentMethodsRecord, Iterable<PluginProperty> properties, TenantContext context) {
         return PaymentInfoMappingService.toPaymentInfo(clock, account, paymentMethodsRecord, properties);
+    }
+
+    private PaymentInfo buildPaymentInfo(AccountData account, Iterable<PluginProperty> properties, TenantContext context) {
+        return PaymentInfoMappingService.toPaymentInfo(clock, account, properties);
     }
 
     private String getMerchantAccount(final PaymentData paymentData, final Iterable<PluginProperty> properties, final TenantContext context) {

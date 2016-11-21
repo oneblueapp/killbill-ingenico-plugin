@@ -3,24 +3,28 @@ package org.killbill.billing.plugin.ingenico.client;
 import com.ingenico.connect.gateway.sdk.java.Client;
 import com.ingenico.connect.gateway.sdk.java.CommunicatorConfiguration;
 import com.ingenico.connect.gateway.sdk.java.Factory;
-import com.ingenico.connect.gateway.sdk.java.defaultimpl.AuthorizationType;
 import com.ingenico.connect.gateway.sdk.java.domain.definitions.Address;
 import com.ingenico.connect.gateway.sdk.java.domain.definitions.AmountOfMoney;
-import com.ingenico.connect.gateway.sdk.java.domain.definitions.Card;
-import com.ingenico.connect.gateway.sdk.java.domain.definitions.CompanyInformation;
+import com.ingenico.connect.gateway.sdk.java.domain.definitions.CardWithoutCvv;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.CreatePaymentRequest;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.CreatePaymentResponse;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.*;
+import com.ingenico.connect.gateway.sdk.java.domain.token.CreateTokenRequest;
+import com.ingenico.connect.gateway.sdk.java.domain.token.CreateTokenResponse;
+import com.ingenico.connect.gateway.sdk.java.domain.token.definitions.CustomerToken;
+import com.ingenico.connect.gateway.sdk.java.domain.token.definitions.PersonalInformationToken;
+import com.ingenico.connect.gateway.sdk.java.domain.token.definitions.PersonalNameToken;
+import com.ingenico.connect.gateway.sdk.java.domain.token.definitions.TokenCard;
+import com.ingenico.connect.gateway.sdk.java.domain.token.definitions.TokenCardData;
+
 import org.killbill.billing.plugin.ingenico.client.model.PaymentData;
 import org.killbill.billing.plugin.ingenico.client.model.PurchaseResult;
 import org.killbill.billing.plugin.ingenico.client.model.SplitSettlementData;
 import org.killbill.billing.plugin.ingenico.client.model.UserData;
+import org.killbill.billing.plugin.ingenico.client.model.paymentinfo.Card;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.*;
 
 /**
@@ -43,12 +47,18 @@ public class IngenicoClient implements Closeable {
         return Factory.createClient(configuration);
     }
 
-    public PurchaseResult create(PaymentData paymentData, UserData userData, SplitSettlementData splitSettlementData) {
-        Card card = new Card();
-        card.setCardNumber("");
-        card.setCardholderName("Wile E. Coyote");
-        card.setCvv("123");
-        card.setExpiryDate("1220");
+    @Override
+    public void close() throws IOException {
+        this.client.close();
+    }
+
+    public PurchaseResult create(PaymentData<Card> paymentData, UserData userData, SplitSettlementData splitSettlementData) {
+        Card paymentInfo = paymentData.getPaymentInfo();
+        com.ingenico.connect.gateway.sdk.java.domain.definitions.Card card = new com.ingenico.connect.gateway.sdk.java.domain.definitions.Card();
+        card.setCardNumber(paymentInfo.getNumber());
+        card.setCardholderName(paymentInfo.getHolderName());
+        card.setCvv(paymentInfo.getCvc());
+        card.setExpiryDate(paymentInfo.getExpiryDate());
 
         CardPaymentMethodSpecificInput cardPaymentMethodSpecificInput = new CardPaymentMethodSpecificInput();
         cardPaymentMethodSpecificInput.setCard(card);
@@ -60,28 +70,28 @@ public class IngenicoClient implements Closeable {
         amountOfMoney.setCurrencyCode(paymentData.getCurrency().name());
 
         Address billingAddress = new Address();
-        billingAddress.setAdditionalInfo("b");
-        billingAddress.setCity("Monument Valley");
-        billingAddress.setCountryCode("US");
-        billingAddress.setHouseNumber("13");
-        billingAddress.setState("Utah");
-        billingAddress.setStreet("Desertroad");
-        billingAddress.setZip("84536");
+//        billingAddress.setAdditionalInfo("b");
+        billingAddress.setCity(paymentInfo.getCity());
+        billingAddress.setCountryCode(paymentInfo.getCountry());
+        billingAddress.setHouseNumber(paymentInfo.getHouseNumberOrName());
+        billingAddress.setState(paymentInfo.getStateOrProvince());
+        billingAddress.setStreet(paymentInfo.getStreet());
+        billingAddress.setZip(paymentInfo.getPostalCode());
 
-        CompanyInformation companyInformation = new CompanyInformation();
-        companyInformation.setName("Acme Labs");
+//        CompanyInformation companyInformation = new CompanyInformation();
+//        companyInformation.setName("Acme Labs");
 
         ContactDetails contactDetails = new ContactDetails();
-        contactDetails.setEmailAddress("wile.e.coyote@acmelabs.com");
+        contactDetails.setEmailAddress(userData.getShopperEmail());
         contactDetails.setEmailMessageType("html");
-        contactDetails.setFaxNumber("+1234567891");
-        contactDetails.setPhoneNumber("+1234567890");
+//        contactDetails.setFaxNumber("+1234567891");
+        contactDetails.setPhoneNumber(userData.getTelephoneNumber());
 
         PersonalName name = new PersonalName();
         name.setFirstName(userData.getFirstName());
         name.setSurname(userData.getLastName());
-        name.setSurnamePrefix("E.");
-        name.setTitle("Mr.");
+//        name.setSurnamePrefix("E.");
+//        name.setTitle("Mr.");
 
         PersonalInformation personalInformation = new PersonalInformation();
         personalInformation.setDateOfBirth(userData.getFormattedDateOfBirth("yyyyMMdd"));
@@ -91,7 +101,7 @@ public class IngenicoClient implements Closeable {
         PersonalName shippingName = new PersonalName();
         shippingName.setFirstName("Road");
         shippingName.setSurname("Runner");
-        shippingName.setTitle("Miss");
+//        shippingName.setTitle("Miss");
 
         AddressPersonal shippingAddress = new AddressPersonal();
         shippingAddress.setAdditionalInfo("Suite II");
@@ -105,13 +115,13 @@ public class IngenicoClient implements Closeable {
 
         Customer customer = new Customer();
         customer.setBillingAddress(billingAddress);
-        customer.setCompanyInformation(companyInformation);
+//        customer.setCompanyInformation(companyInformation);
         customer.setContactDetails(contactDetails);
-        customer.setLocale("en_US");
-        customer.setMerchantCustomerId("1234");
+        customer.setLocale(userData.getShopperLocale().toLanguageTag());
+        customer.setMerchantCustomerId(userData.getShopperReference());
         customer.setPersonalInformation(personalInformation);
         customer.setShippingAddress(shippingAddress);
-        customer.setVatNumber("1234AB5678CD");
+        customer.setVatNumber(userData.getVatNumber());
 
         List<LineItem> items = new ArrayList<LineItem>();
 
@@ -165,7 +175,7 @@ public class IngenicoClient implements Closeable {
         body.setCardPaymentMethodSpecificInput(cardPaymentMethodSpecificInput);
         body.setOrder(order);
         String merchantId = this.properties.getMerchantId();
-        CreatePaymentResponse response = this.client.merchant("").payments().create(body);
+        CreatePaymentResponse response = this.client.merchant(merchantId).payments().create(body);
         Payment paymentResponse = response.getPayment();
         PaymentOutput paymentOutput = paymentResponse.getPaymentOutput();
 
@@ -196,12 +206,50 @@ public class IngenicoClient implements Closeable {
                 formParams);
     }
 
-    @Override
-    public void close() throws IOException {
-        this.client.close();
-    }
+    public String tokenizeCreditCard(Card paymentInfo, UserData userData, final String cardAlias) {
+        Address billingAddress = new Address();
+        //billingAddress.setAdditionalInfo("Suite II");
+        billingAddress.setCity(paymentInfo.getCity());
+        billingAddress.setCountryCode(paymentInfo.getCountry());
+        billingAddress.setHouseNumber(paymentInfo.getHouseNumberOrName());
+        billingAddress.setState(paymentInfo.getStateOrProvince());
+        billingAddress.setStreet(paymentInfo.getStreet());
+        billingAddress.setZip(paymentInfo.getPostalCode());
 
-    public String tokenizeCreditCard(final String s, final String s1, final String s2, final String s3, final String s4) {
-        return "THE TOKEN";
+//        CompanyInformation companyInformation = new CompanyInformation();
+//        companyInformation.setName("Acme Labs");
+
+        PersonalNameToken name = new PersonalNameToken();
+        name.setFirstName(userData.getFirstName());
+        name.setSurname(userData.getLastName());
+
+        PersonalInformationToken personalInformation = new PersonalInformationToken();
+        personalInformation.setName(name);
+
+        CustomerToken customer = new CustomerToken();
+        customer.setBillingAddress(billingAddress);
+//        customer.setCompanyInformation(companyInformation);
+        customer.setMerchantCustomerId(userData.getShopperReference());
+        customer.setPersonalInformation(personalInformation);
+
+        TokenCard tokenCard = new TokenCard();
+        tokenCard.setCustomer(customer);
+        tokenCard.setAlias(cardAlias);
+
+        CardWithoutCvv cardWithoutCvv = new CardWithoutCvv();
+        cardWithoutCvv.setCardNumber(paymentInfo.getNumber());
+        cardWithoutCvv.setCardholderName(paymentInfo.getHolderName());
+        cardWithoutCvv.setExpiryDate(paymentInfo.getExpiryDate());
+
+        TokenCardData tokenCardData = new TokenCardData();
+        tokenCardData.setCardWithoutCvv(cardWithoutCvv);
+        tokenCard.setData(tokenCardData);
+
+        CreateTokenRequest body = new CreateTokenRequest();
+        body.setCard(tokenCard);
+        body.setPaymentProductId(0);
+
+        CreateTokenResponse response = client.merchant(this.properties.getMerchantId()).tokens().create(body);
+        return response.getToken();
     }
 }

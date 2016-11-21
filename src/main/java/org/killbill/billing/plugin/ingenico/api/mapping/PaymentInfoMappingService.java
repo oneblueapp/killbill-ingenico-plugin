@@ -34,6 +34,10 @@ import static org.killbill.billing.plugin.api.payment.PluginPaymentPluginApi.*;
 
 public abstract class PaymentInfoMappingService {
 
+    public static PaymentInfo toPaymentInfo(final Clock clock, final AccountData account, final Iterable<PluginProperty> properties) {
+        return toPaymentInfo(clock, account, null, properties);
+    }
+
     public static PaymentInfo toPaymentInfo(final Clock clock, @Nullable final AccountData account, @Nullable final IngenicoPaymentMethodsRecord paymentMethodsRecord, final Iterable<PluginProperty> properties) {
         final PaymentInfo paymentInfo;
 
@@ -91,6 +95,30 @@ public abstract class PaymentInfoMappingService {
         // For the MisterCash payment method, it can be set to maestro (default, to be processed like a Maestro card) or bcmc (to be processed like a MisterCash card)
         // It can also be set to specific values for DineroMail or to force recurring ELV contracts to be handled as SEPA
         final String selectedBrand = PluginProperties.findPluginPropertyValue(PROPERTY_CC_TYPE, properties);
+//        1	Visa
+//        2	American Express
+//        3	MasterCard
+//        114	Visa Debit
+//        117	Maestro
+//        119	MasterCard Debit
+//        122	Visa Electron
+//        125	JCB
+//        128	Discover
+//        130	Carte Bancaire
+//        132	Diners Club
+//        135	Cabal
+//        136	Naranja
+//        137	Nevada
+//        139	Italcred
+//        140	Argencard
+//        141	Consumax
+//        142	Mas
+//        144	Pyme Nacion
+//        145	Nativa
+//        146	Aura
+//        147	ELO
+//        148	Hipercard
+//        149	Tarjeta Shopping
         paymentInfo.setSelectedBrand(selectedBrand);
     }
 
@@ -101,4 +129,5 @@ public abstract class PaymentInfoMappingService {
             return value;
         }
     }
+
 }

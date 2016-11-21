@@ -28,11 +28,10 @@ public class UserData {
     private String shopperReference;
     private Locale shopperLocale;
     private String firstName;
-    private String infix;
     private String lastName;
     private String gender;
     private String telephoneNumber;
-    private String socialSecurityNumber;
+    private String vatNumber;
     private DateTime dateOfBirth;
     private String shopperIP;
 
@@ -68,14 +67,6 @@ public class UserData {
         this.firstName = firstName;
     }
 
-    public String getInfix() {
-        return infix;
-    }
-
-    public void setInfix(final String infix) {
-        this.infix = infix;
-    }
-
     public String getLastName() {
         return lastName;
     }
@@ -100,12 +91,12 @@ public class UserData {
         this.telephoneNumber = telephoneNumber;
     }
 
-    public String getSocialSecurityNumber() {
-        return socialSecurityNumber;
+    public String getVatNumber() {
+        return vatNumber;
     }
 
-    public void setSocialSecurityNumber(final String socialSecurityNumber) {
-        this.socialSecurityNumber = socialSecurityNumber;
+    public void setVatNumber(final String socialSecurityNumber) {
+        this.vatNumber = socialSecurityNumber;
     }
 
     public DateTime getDateOfBirth() {
@@ -114,7 +105,7 @@ public class UserData {
 
     public String getFormattedDateOfBirth(String format) {
         SimpleDateFormat ft = new SimpleDateFormat(format);
-        return ft.format(this.dateOfBirth);
+        return ft.format(getDateOfBirth());
     }
 
     public void setDateOfBirth(final DateTime dateOfBirth) {
@@ -136,11 +127,10 @@ public class UserData {
         sb.append(", shopperReference='").append(shopperReference).append('\'');
         sb.append(", shopperLocale=").append(shopperLocale);
         sb.append(", firstName='").append(firstName).append('\'');
-        sb.append(", infix='").append(infix).append('\'');
         sb.append(", lastName='").append(lastName).append('\'');
         sb.append(", gender='").append(gender).append('\'');
         sb.append(", telephoneNumber='").append(telephoneNumber).append('\'');
-        sb.append(", socialSecurityNumber='").append(socialSecurityNumber).append('\'');
+        sb.append(", vatNumber='").append(vatNumber).append('\'');
         sb.append(", dateOfBirth=").append(dateOfBirth);
         sb.append(", shopperIP='").append(shopperIP).append('\'');
         sb.append('}');
@@ -170,9 +160,6 @@ public class UserData {
         if (firstName != null ? !firstName.equals(userData.firstName) : userData.firstName != null) {
             return false;
         }
-        if (infix != null ? !infix.equals(userData.infix) : userData.infix != null) {
-            return false;
-        }
         if (lastName != null ? !lastName.equals(userData.lastName) : userData.lastName != null) {
             return false;
         }
@@ -182,7 +169,7 @@ public class UserData {
         if (telephoneNumber != null ? !telephoneNumber.equals(userData.telephoneNumber) : userData.telephoneNumber != null) {
             return false;
         }
-        if (socialSecurityNumber != null ? !socialSecurityNumber.equals(userData.socialSecurityNumber) : userData.socialSecurityNumber != null) {
+        if (vatNumber != null ? !vatNumber.equals(userData.vatNumber) : userData.vatNumber != null) {
             return false;
         }
         if (dateOfBirth != null ? !dateOfBirth.equals(userData.dateOfBirth) : userData.dateOfBirth != null) {
@@ -198,11 +185,10 @@ public class UserData {
         result = 31 * result + (shopperReference != null ? shopperReference.hashCode() : 0);
         result = 31 * result + (shopperLocale != null ? shopperLocale.hashCode() : 0);
         result = 31 * result + (firstName != null ? firstName.hashCode() : 0);
-        result = 31 * result + (infix != null ? infix.hashCode() : 0);
         result = 31 * result + (lastName != null ? lastName.hashCode() : 0);
         result = 31 * result + (gender != null ? gender.hashCode() : 0);
         result = 31 * result + (telephoneNumber != null ? telephoneNumber.hashCode() : 0);
-        result = 31 * result + (socialSecurityNumber != null ? socialSecurityNumber.hashCode() : 0);
+        result = 31 * result + (vatNumber != null ? vatNumber.hashCode() : 0);
         result = 31 * result + (dateOfBirth != null ? dateOfBirth.hashCode() : 0);
         result = 31 * result + (shopperIP != null ? shopperIP.hashCode() : 0);
         return result;

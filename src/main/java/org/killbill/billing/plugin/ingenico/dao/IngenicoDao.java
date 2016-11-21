@@ -1,7 +1,12 @@
 package org.killbill.billing.plugin.ingenico.dao;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Joiner;
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.UUID;
+
+import javax.sql.DataSource;
+
 import org.joda.time.DateTime;
 import org.jooq.impl.DSL;
 import org.killbill.billing.catalog.api.Currency;
@@ -13,11 +18,8 @@ import org.killbill.billing.plugin.ingenico.dao.gen.tables.IngenicoResponses;
 import org.killbill.billing.plugin.ingenico.dao.gen.tables.records.IngenicoPaymentMethodsRecord;
 import org.killbill.billing.plugin.ingenico.dao.gen.tables.records.IngenicoResponsesRecord;
 
-import javax.sql.DataSource;
-import java.math.BigDecimal;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.UUID;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Joiner;
 
 import static org.killbill.billing.plugin.ingenico.dao.gen.tables.IngenicoPaymentMethods.INGENICO_PAYMENT_METHODS;
 import static org.killbill.billing.plugin.ingenico.dao.gen.tables.IngenicoResponses.INGENICO_RESPONSES;
@@ -113,4 +115,5 @@ public class IngenicoDao extends PluginPaymentDao<IngenicoResponsesRecord, Ingen
                     }
                 });
     }
+
 }

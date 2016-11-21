@@ -35,9 +35,7 @@ public abstract class UserDataMappingService {
         final UserData userData = new UserData();
 
         // determine the customer id
-        final String customerIdProperty = PluginProperties.findPluginPropertyValue(IngenicoPaymentPluginApi.PROPERTY_CUSTOMER_ID, properties);
-        final Optional<String> optionalCustomerId = toCustomerId(customerIdProperty, account);
-        final String customerId = optionalCustomerId.isPresent() ? optionalCustomerId.get() : null;
+        final String customerId = account.getExternalKey();
         userData.setShopperReference(customerId);
 
         // determine the customer locale
