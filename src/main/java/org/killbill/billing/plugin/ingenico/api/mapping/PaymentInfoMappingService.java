@@ -40,8 +40,10 @@ public abstract class PaymentInfoMappingService {
 
     public static PaymentInfo toPaymentInfo(final Clock clock, @Nullable final AccountData account, @Nullable final IngenicoPaymentMethodsRecord paymentMethodsRecord, final Iterable<PluginProperty> properties) {
         final PaymentInfo paymentInfo;
-
-        if (paymentMethodsRecord.getToken() != null) {
+        if (paymentMethodsRecord == null) {
+            paymentInfo = CardMappingService.toPaymentInfo(paymentMethodsRecord, properties);
+        }
+        else if(paymentMethodsRecord.getToken() != null) {
             paymentInfo = RecurringMappingService.toPaymentInfo(paymentMethodsRecord, properties);
         } else {
             paymentInfo = CardMappingService.toPaymentInfo(paymentMethodsRecord, properties);

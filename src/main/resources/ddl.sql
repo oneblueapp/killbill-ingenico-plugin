@@ -12,14 +12,16 @@ create table ingenico_responses (
 , pg_transaction_id varchar(255) not null
 , pg_status varchar(255) not null
 , pg_transaction_method varchar(255)
-, pg_reference varchar(64)
+, pg_merchant_reference varchar(64)
 , pg_authorization_code varchar(255) null
 , pg_product_id int(3) null
 , pg_error_code varchar(64) null
 , pg_error_message varchar(255) null
+, reference varchar(64)
 , pg_fraud_avs_result char(1) null
 , pg_fraud_cvv_result char(1) null
 , pg_fraud_result varchar(255) null
+, additional_data longtext default null
 , created_date datetime not null
 , kb_tenant_id char(36) not null
 , primary key(record_id)

@@ -18,6 +18,8 @@
 package org.killbill.billing.plugin.ingenico.api;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Optional;
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.joda.time.DateTime;
@@ -97,33 +99,30 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
 
     @Override
     public PaymentTransactionInfoPlugin authorizePayment(final UUID kbAccountId, final UUID kbPaymentId, final UUID kbTransactionId, final UUID kbPaymentMethodId, final BigDecimal amount, final Currency currency, final Iterable<PluginProperty> properties, final CallContext context) throws PaymentPluginApiException {
-        final IngenicoClient client = ingenicoConfigurationHandler.getConfigurable(context.getTenantId());
-
-        final Account account = getAccount(kbAccountId, context);
-
-        final IngenicoPaymentMethodsRecord nonNullPaymentMethodsRecord = getIngenicoPaymentMethodsRecord(kbPaymentMethodId, context);
-        // Pull extra properties from the payment method (such as the customerId)
-        final Iterable<PluginProperty> additionalPropertiesFromRecord = buildPaymentMethodPlugin(nonNullPaymentMethodsRecord).getProperties();
-        //noinspection unchecked
-        final Iterable<PluginProperty> mergedProperties = PluginProperties.merge(additionalPropertiesFromRecord, properties);
-        final PaymentData paymentData = buildPaymentData(account, kbPaymentId, kbTransactionId, nonNullPaymentMethodsRecord, amount, currency, mergedProperties, context);
-        final UserData userData = toUserData(account, mergedProperties);
-        final SplitSettlementData splitSettlementData = null;
-        final DateTime utcNow = clock.getUTCNow();
-
-        final String merchantAccount = getMerchantAccount(paymentData, properties, context);
-
-//        final PurchaseResult response = transactionExecutor.execute(merchantAccount, paymentData, userData, splitSettlementData);
-        final PurchaseResult response = client.create(paymentData, userData, splitSettlementData);
-        try {
-            dao.addResponse(kbAccountId, kbPaymentId, kbTransactionId, TransactionType.AUTHORIZE, amount, currency, response, utcNow, context.getTenantId());
-            return new IngenicoPaymentTransactionInfoPlugin(kbPaymentId, kbTransactionId, TransactionType.AUTHORIZE, amount, currency, utcNow, response);
-        } catch (final SQLException e) {
-            throw new PaymentPluginApiException("Payment went through, but we encountered a database error. Payment details: " + response.toString(), e);
-        }
+        return executeInitialTransaction(TransactionType.AUTHORIZE, kbAccountId, kbPaymentId, kbTransactionId, kbPaymentMethodId, amount, currency, properties, context);
     }
 
-    private IngenicoPaymentMethodsRecord getIngenicoPaymentMethodsRecord(UUID kbPaymentMethodId, CallContext context) {
+    @Override
+    public PaymentTransactionInfoPlugin capturePayment(final UUID kbAccountId, final UUID kbPaymentId, final UUID kbTransactionId, final UUID kbPaymentMethodId, final BigDecimal amount, final Currency currency, final Iterable<PluginProperty> properties, final CallContext context) throws PaymentPluginApiException {
+        return executeFollowUpTransaction(TransactionType.CAPTURE,
+                                          new TransactionExecutor<PaymentModificationResponse>() {
+                                              @Override
+                                              public PaymentModificationResponse execute(final String merchantAccount, final PaymentData paymentData, final String pspReference, final SplitSettlementData splitSettlementData) {
+                                                  final IngenicoClient ingenicoClient = ingenicoConfigurationHandler.getConfigurable(context.getTenantId());
+                                                  return ingenicoClient.capture(paymentData, splitSettlementData);
+                                              }
+                                          },
+                                          kbAccountId,
+                                          kbPaymentId,
+                                          kbTransactionId,
+                                          kbPaymentMethodId,
+                                          amount,
+                                          currency,
+                                          properties,
+                                          context);
+    }
+
+    private IngenicoPaymentMethodsRecord getIngenicoPaymentMethodsRecord(UUID kbPaymentMethodId, TenantContext context) {
         IngenicoPaymentMethodsRecord paymentMethodsRecord = null;
 
         if (kbPaymentMethodId != null) {
@@ -138,28 +137,53 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
     }
 
     @Override
-    public PaymentTransactionInfoPlugin capturePayment(final UUID kbAccountId, final UUID kbPaymentId, final UUID kbTransactionId, final UUID kbPaymentMethodId, final BigDecimal amount, final Currency currency, final Iterable<PluginProperty> properties, final CallContext context) throws PaymentPluginApiException {
-        return null;
-    }
-
-    @Override
     public PaymentTransactionInfoPlugin purchasePayment(final UUID kbAccountId, final UUID kbPaymentId, final UUID kbTransactionId, final UUID kbPaymentMethodId, final BigDecimal amount, final Currency currency, final Iterable<PluginProperty> properties, final CallContext context) throws PaymentPluginApiException {
-        return null;
+        return executeInitialTransaction(TransactionType.PURCHASE, kbAccountId, kbPaymentId, kbTransactionId, kbPaymentMethodId, amount, currency, properties, context);
     }
 
     @Override
     public PaymentTransactionInfoPlugin voidPayment(final UUID kbAccountId, final UUID kbPaymentId, final UUID kbTransactionId, final UUID kbPaymentMethodId, final Iterable<PluginProperty> properties, final CallContext context) throws PaymentPluginApiException {
-        return null;
+        return executeFollowUpTransaction(TransactionType.VOID,
+                                          new TransactionExecutor<PaymentModificationResponse>() {
+                                              @Override
+                                              public PaymentModificationResponse execute(final String merchantAccount, final PaymentData paymentData, final String pspReference, final SplitSettlementData splitSettlementData) {
+                                                  final IngenicoClient ingenicoClient = ingenicoConfigurationHandler.getConfigurable(context.getTenantId());
+                                                  return ingenicoClient.cancel(merchantAccount, paymentData, pspReference, splitSettlementData);
+                                              }
+                                          },
+                                          kbAccountId,
+                                          kbPaymentId,
+                                          kbTransactionId,
+                                          kbPaymentMethodId,
+                                          null,
+                                          null,
+                                          properties,
+                                          context);
     }
 
     @Override
     public PaymentTransactionInfoPlugin creditPayment(final UUID kbAccountId, final UUID kbPaymentId, final UUID kbTransactionId, final UUID kbPaymentMethodId, final BigDecimal amount, final Currency currency, final Iterable<PluginProperty> properties, final CallContext context) throws PaymentPluginApiException {
-        return null;
+        return executeInitialTransaction(TransactionType.CREDIT, kbAccountId, kbPaymentId, kbTransactionId, kbPaymentMethodId, amount, currency, properties, context);
     }
 
     @Override
     public PaymentTransactionInfoPlugin refundPayment(final UUID kbAccountId, final UUID kbPaymentId, final UUID kbTransactionId, final UUID kbPaymentMethodId, final BigDecimal amount, final Currency currency, final Iterable<PluginProperty> properties, final CallContext context) throws PaymentPluginApiException {
-        return null;
+        return executeFollowUpTransaction(TransactionType.REFUND,
+                                          new TransactionExecutor<PaymentModificationResponse>() {
+                                              @Override
+                                              public PaymentModificationResponse execute(final String merchantAccount, final PaymentData paymentData, final String pspReference, final SplitSettlementData splitSettlementData) {
+                                                  final IngenicoClient ingenicoClient = ingenicoConfigurationHandler.getConfigurable(context.getTenantId());
+                                                  return ingenicoClient.refund(merchantAccount, paymentData, pspReference, splitSettlementData);
+                                              }
+                                          },
+                                          kbAccountId,
+                                          kbPaymentId,
+                                          kbTransactionId,
+                                          kbPaymentMethodId,
+                                          amount,
+                                          currency,
+                                          properties,
+                                          context);
     }
 
     @Override
@@ -201,7 +225,7 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
         final Card paymentInfo = (Card) buildPaymentInfo(account, properties, context);
 
         final UserData userData = toUserData(account, properties);
-        final String cardAlias = safePropertiesMap.getOrDefault("", "My card");
+        final String cardAlias = safePropertiesMap.get("");
         final String token = client.tokenizeCreditCard(paymentInfo, userData, cardAlias);
         safePropertiesMap.put(PROPERTY_TOKEN, token);
 
@@ -254,6 +278,130 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
         return null;
     }
 
+
+
+    private abstract static class TransactionExecutor<T> {
+
+        public T execute(final String merchantAccount, final PaymentData paymentData, final UserData userData, final SplitSettlementData splitSettlementData) {
+            throw new UnsupportedOperationException();
+        }
+
+        public T execute(final String merchantAccount, final PaymentData paymentData, final String pspReference, final SplitSettlementData splitSettlementData) {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    private PaymentTransactionInfoPlugin executeInitialTransaction(final TransactionType transactionType,
+                                                                   final UUID kbAccountId,
+                                                                   final UUID kbPaymentId,
+                                                                   final UUID kbTransactionId,
+                                                                   final UUID kbPaymentMethodId,
+                                                                   final BigDecimal amount,
+                                                                   final Currency currency,
+                                                                   final Iterable<PluginProperty> properties,
+                                                                   final CallContext context) throws PaymentPluginApiException {
+        return executeInitialTransaction(transactionType,
+                                         new TransactionExecutor<PurchaseResult>() {
+                                             @Override
+                                             public PurchaseResult execute(final String merchantAccount, final PaymentData paymentData, final UserData userData, final SplitSettlementData splitSettlementData) {
+                                                 final IngenicoClient ingenicoClient = ingenicoConfigurationHandler.getConfigurable(context.getTenantId());
+
+                                                 if (transactionType == TransactionType.CREDIT) {
+                                                     return ingenicoClient.credit(paymentData, splitSettlementData);
+                                                 } else {
+                                                     return ingenicoClient.create(paymentData, userData, splitSettlementData);
+                                                 }
+                                             }
+                                         },
+                                         kbAccountId,
+                                         kbPaymentId,
+                                         kbTransactionId,
+                                         kbPaymentMethodId,
+                                         amount,
+                                         currency,
+                                         properties,
+                                         context);
+    }
+
+    private PaymentTransactionInfoPlugin executeInitialTransaction(final TransactionType transactionType,
+                                                                   final TransactionExecutor<PurchaseResult> transactionExecutor,
+                                                                   final UUID kbAccountId,
+                                                                   final UUID kbPaymentId,
+                                                                   final UUID kbTransactionId,
+                                                                   final UUID kbPaymentMethodId,
+                                                                   final BigDecimal amount,
+                                                                   final Currency currency,
+                                                                   final Iterable<PluginProperty> properties,
+                                                                   final TenantContext context) throws PaymentPluginApiException {
+        final Account account = getAccount(kbAccountId, context);
+
+        final IngenicoPaymentMethodsRecord nonNullPaymentMethodsRecord = getIngenicoPaymentMethodsRecord(kbPaymentMethodId, context);
+        // Pull extra properties from the payment method (such as the customerId)
+        final Iterable<PluginProperty> additionalPropertiesFromRecord = buildPaymentMethodPlugin(nonNullPaymentMethodsRecord).getProperties();
+        //noinspection unchecked
+        final Iterable<PluginProperty> mergedProperties = PluginProperties.merge(additionalPropertiesFromRecord, properties);
+        final PaymentData paymentData = buildPaymentData(account, kbPaymentId, kbTransactionId, nonNullPaymentMethodsRecord, amount, currency, mergedProperties, context);
+        final UserData userData = toUserData(account, mergedProperties);
+        final SplitSettlementData splitSettlementData = null;
+        final DateTime utcNow = clock.getUTCNow();
+
+        final String merchantAccount = getMerchantAccount(paymentData, properties, context);
+
+        final PurchaseResult response = transactionExecutor.execute(merchantAccount, paymentData, userData, splitSettlementData);
+        try {
+            dao.addResponse(kbAccountId, kbPaymentId, kbTransactionId, transactionType, amount, currency, response, utcNow, context.getTenantId());
+            return new IngenicoPaymentTransactionInfoPlugin(kbPaymentId, kbTransactionId, transactionType, amount, currency, utcNow, response);
+        } catch (final SQLException e) {
+            throw new PaymentPluginApiException("Payment went through, but we encountered a database error. Payment details: " + response.toString(), e);
+        }
+    }
+
+    private PaymentTransactionInfoPlugin executeFollowUpTransaction(final TransactionType transactionType,
+                                                                    final TransactionExecutor<PaymentModificationResponse> transactionExecutor,
+                                                                    final UUID kbAccountId,
+                                                                    final UUID kbPaymentId,
+                                                                    final UUID kbTransactionId,
+                                                                    final UUID kbPaymentMethodId,
+                                                                    @Nullable final BigDecimal amount,
+                                                                    @Nullable final Currency currency,
+                                                                    final Iterable<PluginProperty> properties,
+                                                                    final TenantContext context) throws PaymentPluginApiException {
+        final Account account = getAccount(kbAccountId, context);
+
+        final String pspReference;
+        try {
+            final IngenicoResponsesRecord previousResponse = dao.getSuccessfulAuthorizationResponse(kbPaymentId, context.getTenantId());
+            if (previousResponse == null) {
+                throw new PaymentPluginApiException(null, "Unable to retrieve previous payment response for kbTransactionId " + kbTransactionId);
+            }
+            pspReference = previousResponse.getPgReference();
+        } catch (final SQLException e) {
+            throw new PaymentPluginApiException("Unable to retrieve previous payment response for kbTransactionId " + kbTransactionId, e);
+        }
+
+        final IngenicoPaymentMethodsRecord nonNullPaymentMethodsRecord = getIngenicoPaymentMethodsRecord(kbPaymentMethodId, context);
+        final PaymentData paymentData = buildPaymentData(account, kbPaymentId, kbTransactionId, nonNullPaymentMethodsRecord, amount, currency, properties, context);
+        final SplitSettlementData splitSettlementData = null;
+        final DateTime utcNow = clock.getUTCNow();
+
+        final String merchantAccount = getMerchantAccount(paymentData, properties, context);
+
+        final PaymentModificationResponse response = transactionExecutor.execute(merchantAccount, paymentData, pspReference, splitSettlementData);
+        final Optional<PaymentServiceProviderResult> paymentServiceProviderResult;
+        if (response.isTechnicallySuccessful()) {
+            paymentServiceProviderResult = Optional.of(PaymentServiceProviderResult.RECEIVED);
+        } else {
+            paymentServiceProviderResult = Optional.<PaymentServiceProviderResult>absent();
+        }
+
+        try {
+            dao.addResponse(kbAccountId, kbPaymentId, kbTransactionId, transactionType, amount, currency, response, utcNow, context.getTenantId());
+            return new IngenicoPaymentTransactionInfoPlugin(kbPaymentId, kbTransactionId, transactionType, amount, currency, paymentServiceProviderResult, utcNow, response);
+        } catch (final SQLException e) {
+            throw new PaymentPluginApiException("Payment went through, but we encountered a database error. Payment details: " + (response.toString()), e);
+        }
+    }
+
     private IngenicoPaymentMethodsRecord emptyRecord(@Nullable final UUID kbPaymentMethodId) {
         final IngenicoPaymentMethodsRecord record = new IngenicoPaymentMethodsRecord();
         if (kbPaymentMethodId != null) {
@@ -271,11 +419,16 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
         }
 
         final PaymentTransaction paymentTransaction = Iterables.<PaymentTransaction>find(payment.getTransactions(),
-                input -> kbTransactionId.equals(input.getId()));
+                                                                                         new Predicate<PaymentTransaction>() {
+                                                                                             @Override
+                                                                                             public boolean apply(final PaymentTransaction input) {
+                                                                                                 return kbTransactionId.equals(input.getId());
+                                                                                             }
+                                                                                         });
 
         final PaymentInfo paymentInfo = buildPaymentInfo(account, paymentMethodsRecord, properties, context);
 
-        return new PaymentData<>(amount, currency, paymentTransaction.getExternalKey(), paymentInfo);
+        return new PaymentData<PaymentInfo>(amount, currency, paymentTransaction.getExternalKey(), paymentInfo);
     }
 
     private PaymentInfo buildPaymentInfo(AccountData account, IngenicoPaymentMethodsRecord paymentMethodsRecord, Iterable<PluginProperty> properties, TenantContext context) {

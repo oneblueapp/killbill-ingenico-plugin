@@ -18,14 +18,12 @@
 package org.killbill.billing.plugin.ingenico.client.model;
 
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableMap;
+
 import org.killbill.billing.plugin.ingenico.client.model.api.IngenicoCallErrorStatus;
 
 import javax.annotation.Nullable;
-import java.util.Iterator;
-import java.util.Map;
 
-import static com.google.common.base.MoreObjects.firstNonNull;
+import java.util.Map;
 
 public class PurchaseResult {
 
@@ -33,60 +31,62 @@ public class PurchaseResult {
     public static final String EXCEPTION_CLASS = "exceptionClass";
     public static final String EXCEPTION_MESSAGE = "exceptionMessage";
     public static final String UNKNOWN = "";
-    private Optional<IngenicoCallErrorStatus> ingenicoCallErrorStatus;
 
     private final String merchantId;
     private final String transactionId;
     private final String status;
     private final String paymentMethod;
-    private final String paymentReference;
+    private final String merchantReference;
     private final String authorisationCode;
     private final Integer productId;
-    private final String errorCode;
-    private final String errorMessage;
     private final String avsResult;
     private final String cvvResult;
     private final String fraudServiceResult;
-    private Map<String, String> formParams;
+    private final IngenicoCallErrorStatus ingenicoCallErrorStatus;
+    private final Map<String, String> additionalData;
+
+    public PurchaseResult(final String merchantId, final String transactionId, final String status, final String paymentMethod, final String merchantReference, final String authorisationCode, final Integer paymentProductId, final String avsResult, final String cvvResult, final String fraudServiceResult, final Map<String, String> additionalData) {
+        this(merchantId, transactionId, status, paymentMethod, merchantReference, authorisationCode, paymentProductId, avsResult, cvvResult, fraudServiceResult, null, additionalData);
+    }
+
 
     public PurchaseResult(final String merchantId,
                           final String transactionId,
                           final String status,
                           final String paymentMethod,
-                          final String paymentReference,
+                          final String merchantReference,
                           final String authorisationCode,
                           final Integer productId,
-                          final String errorCode,
-                          final String errorMessage,
                           final String avsResult,
                           final String cvvResult,
-                          final String fraudServiceResult, Map<String, String> formParams) {
+                          final String fraudServiceResult,
+                          @Nullable final IngenicoCallErrorStatus ingenicoCallErrorStatus,
+                          final Map<String, String> additionalData) {
+        this.ingenicoCallErrorStatus = ingenicoCallErrorStatus;
         this.merchantId = merchantId;
         this.transactionId = transactionId;
         this.productId = productId;
         this.status = status;
         this.paymentMethod = paymentMethod;
-        this.paymentReference = paymentReference;
+        this.merchantReference = merchantReference;
         this.authorisationCode = authorisationCode;
-        this.errorCode = errorCode;
-        this.errorMessage = errorMessage;
         this.avsResult = avsResult;
         this.cvvResult = cvvResult;
         this.fraudServiceResult = fraudServiceResult;
-        this.formParams = formParams;
+        this.additionalData = additionalData;
     }
 
     /**
      * True if we received a well formed soap response from adyen.
      */
     @SuppressWarnings("unused")
-//    public boolean isTechnicallySuccessful() {
-//        return !getAdyenCallErrorStatus().isPresent();
-//    }
+    public boolean isTechnicallySuccessful() {
+        return !getIngenicoCallErrorStatus().isPresent();
+    }
 
-//    public Optional<AdyenCallErrorStatus> getAdyenCallErrorStatus() {
-//        return Optional.fromNullable(adyenCallErrorStatus);
-//    }
+    public Optional<IngenicoCallErrorStatus> getIngenicoCallErrorStatus() {
+        return Optional.fromNullable(ingenicoCallErrorStatus);
+    }
 
     @Override
     public String toString() {
@@ -172,9 +172,6 @@ public class PurchaseResult {
 //        return result1;
     }
 
-    public Optional<IngenicoCallErrorStatus> getIngenicoCallErrorStatus() {
-        return ingenicoCallErrorStatus;
-    }
 
     public Optional<PaymentServiceProviderResult> getResult() {
         Optional<PaymentServiceProviderResult> result = null;
@@ -197,8 +194,8 @@ public class PurchaseResult {
         return paymentMethod;
     }
 
-    public String getPgReference() {
-        return paymentReference;
+    public String getPgMerchantReference() {
+        return merchantReference;
     }
 
     public String getPgAuthorizationCode() {
@@ -221,15 +218,15 @@ public class PurchaseResult {
         return fraudServiceResult;
     }
 
-    public Map getFormParameter() {
-        return formParams;
-    }
-
     public String getPgErrorCode() {
-        return errorCode;
+        return "";
     }
 
     public String getPgErrorMessage() {
-        return errorMessage;
+        return "";
+    }
+
+    public Map<String, String> getAdditionalData() {
+        return additionalData;
     }
 }

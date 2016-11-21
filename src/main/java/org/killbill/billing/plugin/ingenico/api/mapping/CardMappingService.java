@@ -31,24 +31,24 @@ public abstract class CardMappingService {
     public static Card toPaymentInfo(final IngenicoPaymentMethodsRecord paymentMethodsRecord, final Iterable<PluginProperty> properties) {
         final Card card = new Card();
 
-        final String ccNumber = PluginProperties.getValue(PROPERTY_CC_NUMBER, paymentMethodsRecord.getCcNumber(), properties);
+        final String ccNumber = PluginProperties.getValue(PROPERTY_CC_NUMBER,  paymentMethodsRecord == null ? null : paymentMethodsRecord.getCcNumber(), properties);
         card.setNumber(ccNumber);
 
-        final String ccFirstName = PluginProperties.getValue(PROPERTY_CC_FIRST_NAME, paymentMethodsRecord.getCcFirstName(), properties);
-        final String ccLastName = PluginProperties.getValue(PROPERTY_CC_LAST_NAME, paymentMethodsRecord.getCcLastName(), properties);
+        final String ccFirstName = PluginProperties.getValue(PROPERTY_CC_FIRST_NAME,  paymentMethodsRecord == null ? null : paymentMethodsRecord.getCcFirstName(), properties);
+        final String ccLastName = PluginProperties.getValue(PROPERTY_CC_LAST_NAME,  paymentMethodsRecord == null ? null : paymentMethodsRecord.getCcLastName(), properties);
         card.setHolderName(holderName(ccFirstName, ccLastName));
 
-        final String ccExpirationMonth = PluginProperties.getValue(PROPERTY_CC_EXPIRATION_MONTH, paymentMethodsRecord.getCcExpMonth(), properties);
+        final String ccExpirationMonth = PluginProperties.getValue(PROPERTY_CC_EXPIRATION_MONTH,  paymentMethodsRecord == null ? null : paymentMethodsRecord.getCcExpMonth(), properties);
         if (ccExpirationMonth != null) {
             card.setExpiryMonth(Integer.valueOf(ccExpirationMonth));
         }
 
-        final String ccExpirationYear = PluginProperties.getValue(PROPERTY_CC_EXPIRATION_YEAR, paymentMethodsRecord.getCcExpYear(), properties);
+        final String ccExpirationYear = PluginProperties.getValue(PROPERTY_CC_EXPIRATION_YEAR,  paymentMethodsRecord == null ? null : paymentMethodsRecord.getCcExpYear(), properties);
         if (ccExpirationYear != null) {
             card.setExpiryYear(Integer.valueOf(ccExpirationYear));
         }
 
-        final String ccVerificationValue = PluginProperties.getValue(PROPERTY_CC_VERIFICATION_VALUE, paymentMethodsRecord.getCcVerificationValue(), properties);
+        final String ccVerificationValue = PluginProperties.getValue(PROPERTY_CC_VERIFICATION_VALUE,  paymentMethodsRecord == null ? null : paymentMethodsRecord.getCcVerificationValue(), properties);
         card.setCvc(ccVerificationValue);
 
         final String issuerCountry = PluginProperties.findPluginPropertyValue(PROPERTY_CC_ISSUER_COUNTRY, properties);

@@ -45,7 +45,7 @@
         <dependency>
             <groupId>com.ingenico.connect.gateway</groupId>
             <artifactId>connect-sdk-java</artifactId>
-            <version>4.0.0</version>
+            <version>5.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.kill-bill.billing</groupId>
@@ -326,10 +326,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                </configuration>
             </plugin>
         </plugins>
     </build>

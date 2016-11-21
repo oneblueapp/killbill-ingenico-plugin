@@ -17,17 +17,17 @@
 package org.killbill.billing.plugin.ingenico.api;
 
 import com.google.common.base.Optional;
-import com.google.common.base.Strings;
+
 import org.joda.time.DateTime;
 import org.killbill.billing.catalog.api.Currency;
 import org.killbill.billing.payment.api.TransactionType;
 import org.killbill.billing.payment.plugin.api.PaymentPluginStatus;
 import org.killbill.billing.plugin.api.PluginProperties;
 import org.killbill.billing.plugin.api.payment.PluginPaymentTransactionInfoPlugin;
+import org.killbill.billing.plugin.ingenico.client.model.PaymentModificationResponse;
 import org.killbill.billing.plugin.ingenico.client.model.PaymentServiceProviderResult;
 import org.killbill.billing.plugin.ingenico.client.model.PurchaseResult;
 import org.killbill.billing.plugin.ingenico.client.model.api.IngenicoCallErrorStatus;
-import org.killbill.billing.plugin.ingenico.dao.IngenicoDao;
 import org.killbill.billing.plugin.ingenico.dao.gen.tables.records.IngenicoResponsesRecord;
 
 import javax.annotation.Nullable;
@@ -58,29 +58,74 @@ public class IngenicoPaymentTransactionInfoPlugin extends PluginPaymentTransacti
               purchaseResult.getPgAuthorizationCode(),
               utcNow,
               utcNow,
-              PluginProperties.buildPluginProperties(purchaseResult.getFormParameter()));
+              PluginProperties.buildPluginProperties(purchaseResult.getAdditionalData()));
     }
+
+    public IngenicoPaymentTransactionInfoPlugin(final UUID kbPaymentId,
+                                             final UUID kbTransactionPaymentPaymentId,
+                                             final TransactionType transactionType,
+                                             final BigDecimal amount,
+                                             @Nullable final Currency currency,
+                                             final Optional<PaymentServiceProviderResult> pspResult,
+                                             final DateTime utcNow,
+                                             final PaymentModificationResponse paymentModificationResponse) {
+        super(kbPaymentId,
+              kbTransactionPaymentPaymentId,
+              transactionType,
+              amount,
+              currency,
+              getPaymentPluginStatus(paymentModificationResponse.getIngenicoCallErrorStatus(), pspResult),
+              getGatewayError(paymentModificationResponse),
+              truncate(getGatewayErrorCode(paymentModificationResponse)),
+              paymentModificationResponse.getMerchantReference(),
+              null,
+              utcNow,
+              utcNow,
+              PluginProperties.buildPluginProperties(paymentModificationResponse.getAdditionalData()));
+    }
+
+//    public IngenicoPaymentTransactionInfoPlugin(final IngenicoResponsesRecord record) {
+//        super(UUID.fromString(record.getKbPaymentId()),
+//              UUID.fromString(record.getKbPaymentTransactionId()),
+//              TransactionType.valueOf(record.getTransactionType()),
+//              record.getAmount(),
+//              Strings.isNullOrEmpty(record.getCurrency()) ? null : Currency.valueOf(record.getCurrency()),
+//              getPaymentPluginStatus(record),
+//              getGatewayError(record),
+//              truncate(getGatewayErrorCode(record)),
+//              record.getPgReference(),
+//              record.getPgAuthorizationCode(),
+//              new DateTime(record.getCreatedDate(), DateTimeZone.UTC),
+//              new DateTime(record.getCreatedDate(), DateTimeZone.UTC),
+//              IngenicoModelPluginBase.buildPluginProperties(record.getAdditionalData()));
+//    }
 
     private static String getGatewayError(final PurchaseResult purchaseResult) {
-        //return purchaseResult.getReason() != null ? purchaseResult.getReason() : purchaseResult.getAdditionalData().get(PurchaseResult.EXCEPTION_MESSAGE);
-        return null;
+        return purchaseResult.getPgErrorMessage() != null ? purchaseResult.getPgErrorMessage() : purchaseResult.getAdditionalData().get(PurchaseResult.EXCEPTION_MESSAGE);
     }
 
-    private static String getGatewayError(final IngenicoResponsesRecord record) {
-        //return record.getRefusalReason() != null ? record.getRefusalReason() : toString(IngenicoDao.fromAdditionalData(record.getAdditionalData()).get(PurchaseResult.EXCEPTION_MESSAGE));
-        return null;
+    private static String getGatewayError(final PaymentModificationResponse paymentModificationResponse) {
+        return toString(paymentModificationResponse.getAdditionalData().get(PurchaseResult.EXCEPTION_MESSAGE));
     }
+
+//    private static String getGatewayError(final IngenicoResponsesRecord record) {
+//        return record.getRefusalReason() != null ? record.getRefusalReason() : toString(AdyenDao.fromAdditionalData(record.getAdditionalData()).get(PurchaseResult.EXCEPTION_MESSAGE));
+//    }
 
     private static String getGatewayErrorCode(final PurchaseResult purchaseResult) {
-        return null;
-        //return purchaseResult.getResultCode() != null ? purchaseResult.getResultCode() : getExceptionClass(purchaseResult.getAdditionalData());
+        return purchaseResult.getPgErrorCode() != null ? purchaseResult.getPgErrorCode() : getExceptionClass(purchaseResult.getAdditionalData());
+    }
+
+    private static String getGatewayErrorCode(final PaymentModificationResponse paymentModificationResponse) {
+        return paymentModificationResponse.getResponse() != null ? paymentModificationResponse.getResponse() : getExceptionClass(paymentModificationResponse.getAdditionalData());
     }
 
     private static String getGatewayErrorCode(final IngenicoResponsesRecord record) {
-        return  null;
+        return record.getPgErrorCode();
 //        if (record.getResultCode() != null) {
 //            return record.getResultCode();
 //        } else if (record.getPspResult() != null) {
+//            // PaymentModificationResponse
 //            return record.getPspResult();
 //        } else {
 //            return getExceptionClass(IngenicoDao.fromAdditionalData(record.getAdditionalData()));

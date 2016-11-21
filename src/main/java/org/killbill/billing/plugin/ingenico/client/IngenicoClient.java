@@ -1,14 +1,53 @@
 package org.killbill.billing.plugin.ingenico.client;
 
+import java.io.Closeable;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.crypto.Mac;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+
+import org.killbill.billing.plugin.ingenico.client.model.PaymentData;
+import org.killbill.billing.plugin.ingenico.client.model.PaymentModificationResponse;
+import org.killbill.billing.plugin.ingenico.client.model.PurchaseResult;
+import org.killbill.billing.plugin.ingenico.client.model.SplitSettlementData;
+import org.killbill.billing.plugin.ingenico.client.model.UserData;
+import org.killbill.billing.plugin.ingenico.client.model.paymentinfo.Card;
+
+import com.ingenico.connect.gateway.sdk.java.ApiException;
 import com.ingenico.connect.gateway.sdk.java.Client;
 import com.ingenico.connect.gateway.sdk.java.CommunicatorConfiguration;
+import com.ingenico.connect.gateway.sdk.java.DeclinedPaymentException;
 import com.ingenico.connect.gateway.sdk.java.Factory;
 import com.ingenico.connect.gateway.sdk.java.domain.definitions.Address;
 import com.ingenico.connect.gateway.sdk.java.domain.definitions.AmountOfMoney;
 import com.ingenico.connect.gateway.sdk.java.domain.definitions.CardWithoutCvv;
+import com.ingenico.connect.gateway.sdk.java.domain.payment.ApprovePaymentRequest;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.CreatePaymentRequest;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.CreatePaymentResponse;
-import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.*;
+import com.ingenico.connect.gateway.sdk.java.domain.payment.PaymentApprovalResponse;
+import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.AddressPersonal;
+import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.ApprovePaymentNonSepaDirectDebitPaymentMethodSpecificInput;
+import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.CardPaymentMethodSpecificInput;
+import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.ContactDetails;
+import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.Customer;
+import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.LineItem;
+import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.LineItemInvoiceData;
+import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.Order;
+import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.OrderApprovePayment;
+import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.OrderInvoiceData;
+import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.OrderReferences;
+import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.OrderReferencesApprovePayment;
+import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.Payment;
+import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.PaymentOutput;
+import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.PersonalInformation;
+import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.PersonalName;
 import com.ingenico.connect.gateway.sdk.java.domain.token.CreateTokenRequest;
 import com.ingenico.connect.gateway.sdk.java.domain.token.CreateTokenResponse;
 import com.ingenico.connect.gateway.sdk.java.domain.token.definitions.CustomerToken;
@@ -17,21 +56,12 @@ import com.ingenico.connect.gateway.sdk.java.domain.token.definitions.PersonalNa
 import com.ingenico.connect.gateway.sdk.java.domain.token.definitions.TokenCard;
 import com.ingenico.connect.gateway.sdk.java.domain.token.definitions.TokenCardData;
 
-import org.killbill.billing.plugin.ingenico.client.model.PaymentData;
-import org.killbill.billing.plugin.ingenico.client.model.PurchaseResult;
-import org.killbill.billing.plugin.ingenico.client.model.SplitSettlementData;
-import org.killbill.billing.plugin.ingenico.client.model.UserData;
-import org.killbill.billing.plugin.ingenico.client.model.paymentinfo.Card;
-
-import java.io.Closeable;
-import java.io.IOException;
-import java.util.*;
-
 /**
  * Created by otaviosoares on 14/11/16.
  */
 public class IngenicoClient implements Closeable {
 
+    private static final java.lang.String HMAC_ALGORITHM = "";
     private final IngenicoConfigProperties properties;
     private Client client;
 
@@ -117,7 +147,7 @@ public class IngenicoClient implements Closeable {
         customer.setBillingAddress(billingAddress);
 //        customer.setCompanyInformation(companyInformation);
         customer.setContactDetails(contactDetails);
-        customer.setLocale(userData.getShopperLocale().toLanguageTag());
+        customer.setLocale(userData.getShopperLocale().toString());
         customer.setMerchantCustomerId(userData.getShopperReference());
         customer.setPersonalInformation(personalInformation);
         customer.setShippingAddress(shippingAddress);
@@ -175,7 +205,15 @@ public class IngenicoClient implements Closeable {
         body.setCardPaymentMethodSpecificInput(cardPaymentMethodSpecificInput);
         body.setOrder(order);
         String merchantId = this.properties.getMerchantId();
-        CreatePaymentResponse response = this.client.merchant(merchantId).payments().create(body);
+        CreatePaymentResponse response;
+        response = this.client.merchant(merchantId).payments().create(body);
+        try {
+        } catch (DeclinedPaymentException e) {
+            //handleDeclinedPayment(e.getCreatePaymentResult());
+        } catch (ApiException e) {
+            //handleApiErrors(e.getErrors());
+        }
+
         Payment paymentResponse = response.getPayment();
         PaymentOutput paymentOutput = paymentResponse.getPaymentOutput();
 
@@ -195,15 +233,33 @@ public class IngenicoClient implements Closeable {
                 paymentResponse.getId(),
                 paymentResponse.getStatus(),
                 paymentOutput.getPaymentMethod(),
-                paymentOutput.getReferences().getPaymentReference(),
+                paymentOutput.getReferences().getMerchantReference(),
                 paymentOutput.getCardPaymentMethodSpecificOutput().getAuthorisationCode(),
                 paymentOutput.getCardPaymentMethodSpecificOutput().getPaymentProductId(),
-                null,
-                null,
                 paymentOutput.getCardPaymentMethodSpecificOutput().getFraudResults().getAvsResult(),
                 paymentOutput.getCardPaymentMethodSpecificOutput().getFraudResults().getCvvResult(),
                 paymentOutput.getCardPaymentMethodSpecificOutput().getFraudResults().getFraudServiceResult(),
                 formParams);
+    }
+
+    public PaymentModificationResponse capture(final PaymentData paymentData, final SplitSettlementData splitSettlementData) {
+        ApprovePaymentNonSepaDirectDebitPaymentMethodSpecificInput directDebitPaymentMethodSpecificInput = new ApprovePaymentNonSepaDirectDebitPaymentMethodSpecificInput();
+        directDebitPaymentMethodSpecificInput.setDateCollect("20150201");
+        directDebitPaymentMethodSpecificInput.setToken("bfa8a7e4-4530-455a-858d-204ba2afb77e");
+
+        OrderReferencesApprovePayment references = new OrderReferencesApprovePayment();
+        references.setMerchantReference("AcmeOrder0001");
+
+        OrderApprovePayment order = new OrderApprovePayment();
+        order.setReferences(references);
+
+        ApprovePaymentRequest body = new ApprovePaymentRequest();
+        body.setAmount(paymentData.getAmount());
+        body.setDirectDebitPaymentMethodSpecificInput(directDebitPaymentMethodSpecificInput);
+        body.setOrder(order);
+
+        PaymentApprovalResponse response = client.merchant(this.properties.getMerchantId()).payments().approve("paymentId", body);
+        return null;
     }
 
     public String tokenizeCreditCard(Card paymentInfo, UserData userData, final String cardAlias) {
@@ -251,5 +307,17 @@ public class IngenicoClient implements Closeable {
 
         CreateTokenResponse response = client.merchant(this.properties.getMerchantId()).tokens().create(body);
         return response.getToken();
+    }
+
+    public PaymentModificationResponse cancel(final String merchantAccount, final PaymentData paymentData, final String pspReference, final SplitSettlementData splitSettlementData) {
+        return null;
+    }
+
+    public PaymentModificationResponse refund(final String merchantAccount, final PaymentData paymentData, final String pspReference, final SplitSettlementData splitSettlementData) {
+        return null;
+    }
+
+    public PurchaseResult credit(final PaymentData paymentData, final SplitSettlementData splitSettlementData) {
+        return null;
     }
 }
