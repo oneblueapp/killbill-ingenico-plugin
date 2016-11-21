@@ -24,14 +24,17 @@ Configuration
 
 The following properties are required:
 
-* `org.killbill.billing.plugin.ingenico.integrator=<your company name>
+* `org.killbill.billing.plugin.ingenico.integrator=your company name
 * `org.killbill.billing.plugin.ingenico.endpoint.host=api.globalcollect.com
+* `org.killbill.billing.plugin.ingenico.apiKey=your api key
+* `org.killbill.billing.plugin.ingenico.apiSecret=your api secret
+
+Optional properties:
+
 * `org.killbill.billing.plugin.ingenico.authorizationType=V1HMAC
 * `org.killbill.billing.plugin.ingenico.connectTimeout=5000 # use -1 for no timeout
 * `org.killbill.billing.plugin.ingenico.socketTimeout=300000 # use -1 for no timeout
 * `org.killbill.billing.plugin.ingenico.maxConnections=10 # to support 10 concurrent connections
-* `org.killbill.billing.plugin.ingenico.apiKey=<your api key>
-* `org.killbill.billing.plugin.ingenico.apiSecret=<your api secret>
 
 These properties can be specified globally via System Properties or on a per tenant basis:
 
@@ -43,10 +46,12 @@ curl -v \
      -H 'X-Killbill-ApiSecret: lazar' \
      -H 'X-Killbill-CreatedBy: admin' \
      -H 'Content-Type: text/plain' \
-     -d 'org.killbill.billing.plugin.ingenico.merchantId=AAA
-org.killbill.billing.plugin.ingenico.integrator=BBB
-org.killbill.billing.plugin.ingenico.endpoint=CCC
-org.killbill.billing.plugin.ingenico.authorizationType=DDD' \
+     -d 'org.killbill.billing.plugin.ingenico.merchantId=YOUR_MERCHANT_ID
+         org.killbill.billing.plugin.ingenico.integrator=Ingenico
+         org.killbill.billing.plugin.ingenico.endpoint.host=api-sandbox.globalcollect.com
+         org.killbill.billing.plugin.ingenico.authorizationType=V1HMAC
+         org.killbill.billing.plugin.ingenico.apiKey=YOUR_API_KEY
+         org.killbill.billing.plugin.ingenico.apiSecret=YOUR_API_SECRET' \
      http://127.0.0.1:8080/1.0/kb/tenants/uploadPluginConfig/killbill-ingenico
 ```
 
