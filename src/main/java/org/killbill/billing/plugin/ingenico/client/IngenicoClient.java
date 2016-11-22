@@ -2,16 +2,8 @@ package org.killbill.billing.plugin.ingenico.client;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-
-import javax.crypto.Mac;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 
 import org.killbill.billing.plugin.ingenico.client.model.PaymentData;
 import org.killbill.billing.plugin.ingenico.client.model.PaymentModificationResponse;
@@ -32,13 +24,12 @@ import com.ingenico.connect.gateway.sdk.java.domain.payment.ApprovePaymentReques
 import com.ingenico.connect.gateway.sdk.java.domain.payment.CreatePaymentRequest;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.CreatePaymentResponse;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.PaymentApprovalResponse;
+import com.ingenico.connect.gateway.sdk.java.domain.payment.TokenizePaymentRequest;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.AddressPersonal;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.ApprovePaymentNonSepaDirectDebitPaymentMethodSpecificInput;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.CardPaymentMethodSpecificInput;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.ContactDetails;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.Customer;
-import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.LineItem;
-import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.LineItemInvoiceData;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.Order;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.OrderApprovePayment;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.OrderInvoiceData;
@@ -82,164 +73,165 @@ public class IngenicoClient implements Closeable {
         this.client.close();
     }
 
-    public PurchaseResult create(PaymentData<Card> paymentData, UserData userData, SplitSettlementData splitSettlementData) {
+    public PurchaseResult create(PaymentData<Card> paymentData, UserData userData) {
         Card paymentInfo = paymentData.getPaymentInfo();
-        com.ingenico.connect.gateway.sdk.java.domain.definitions.Card card = new com.ingenico.connect.gateway.sdk.java.domain.definitions.Card();
-        card.setCardNumber(paymentInfo.getNumber());
-        card.setCardholderName(paymentInfo.getHolderName());
-        card.setCvv(paymentInfo.getCvc());
-        card.setExpiryDate(paymentInfo.getExpiryDate());
-
-        CardPaymentMethodSpecificInput cardPaymentMethodSpecificInput = new CardPaymentMethodSpecificInput();
-        cardPaymentMethodSpecificInput.setCard(card);
-        cardPaymentMethodSpecificInput.setPaymentProductId(1);
-        cardPaymentMethodSpecificInput.setSkipAuthentication(false);
 
         AmountOfMoney amountOfMoney = new AmountOfMoney();
         amountOfMoney.setAmount(paymentData.getAmount());
         amountOfMoney.setCurrencyCode(paymentData.getCurrency().name());
 
-        Address billingAddress = new Address();
-//        billingAddress.setAdditionalInfo("b");
-        billingAddress.setCity(paymentInfo.getCity());
-        billingAddress.setCountryCode(paymentInfo.getCountry());
-        billingAddress.setHouseNumber(paymentInfo.getHouseNumberOrName());
-        billingAddress.setState(paymentInfo.getStateOrProvince());
-        billingAddress.setStreet(paymentInfo.getStreet());
-        billingAddress.setZip(paymentInfo.getPostalCode());
+        if (paymentInfo.getToken() != null) {
+            TokenizePaymentRequest body = new TokenizePaymentRequest();
 
-//        CompanyInformation companyInformation = new CompanyInformation();
-//        companyInformation.setName("Acme Labs");
-
-        ContactDetails contactDetails = new ContactDetails();
-        contactDetails.setEmailAddress(userData.getShopperEmail());
-        contactDetails.setEmailMessageType("html");
-//        contactDetails.setFaxNumber("+1234567891");
-        contactDetails.setPhoneNumber(userData.getTelephoneNumber());
-
-        PersonalName name = new PersonalName();
-        name.setFirstName(userData.getFirstName());
-        name.setSurname(userData.getLastName());
-//        name.setSurnamePrefix("E.");
-//        name.setTitle("Mr.");
-
-        PersonalInformation personalInformation = new PersonalInformation();
-        personalInformation.setDateOfBirth(userData.getFormattedDateOfBirth("yyyyMMdd"));
-        personalInformation.setGender(userData.getGender());
-        personalInformation.setName(name);
-
-        PersonalName shippingName = new PersonalName();
-        shippingName.setFirstName("Road");
-        shippingName.setSurname("Runner");
-//        shippingName.setTitle("Miss");
-
-        AddressPersonal shippingAddress = new AddressPersonal();
-        shippingAddress.setAdditionalInfo("Suite II");
-        shippingAddress.setCity("Monument Valley");
-        shippingAddress.setCountryCode("US");
-        shippingAddress.setHouseNumber("1");
-        shippingAddress.setName(shippingName);
-        shippingAddress.setState("Utah");
-        shippingAddress.setStreet("Desertroad");
-        shippingAddress.setZip("84536");
-
-        Customer customer = new Customer();
-        customer.setBillingAddress(billingAddress);
-//        customer.setCompanyInformation(companyInformation);
-        customer.setContactDetails(contactDetails);
-        customer.setLocale(userData.getShopperLocale().toString());
-        customer.setMerchantCustomerId(userData.getShopperReference());
-        customer.setPersonalInformation(personalInformation);
-        customer.setShippingAddress(shippingAddress);
-        customer.setVatNumber(userData.getVatNumber());
-
-        List<LineItem> items = new ArrayList<LineItem>();
-
-        AmountOfMoney item1AmountOfMoney = new AmountOfMoney();
-        item1AmountOfMoney.setAmount(2500L);
-        item1AmountOfMoney.setCurrencyCode("EUR");
-
-        LineItemInvoiceData item1InvoiceData = new LineItemInvoiceData();
-        item1InvoiceData.setDescription("ACME Super Outfit");
-        item1InvoiceData.setNrOfItems("1");
-        item1InvoiceData.setPricePerItem(2500L);
-
-        LineItem item1 = new LineItem();
-        item1.setAmountOfMoney(item1AmountOfMoney);
-        item1.setInvoiceData(item1InvoiceData);
-
-        items.add(item1);
-
-        AmountOfMoney item2AmountOfMoney = new AmountOfMoney();
-        item2AmountOfMoney.setAmount(480L);
-        item2AmountOfMoney.setCurrencyCode("EUR");
-
-        LineItemInvoiceData item2InvoiceData = new LineItemInvoiceData();
-        item2InvoiceData.setDescription("Asperin");
-        item2InvoiceData.setNrOfItems("12");
-        item2InvoiceData.setPricePerItem(40L);
-
-        LineItem item2 = new LineItem();
-        item2.setAmountOfMoney(item2AmountOfMoney);
-        item2.setInvoiceData(item2InvoiceData);
-
-        items.add(item2);
-
-        OrderInvoiceData invoiceData = new OrderInvoiceData();
-        invoiceData.setInvoiceDate("20140306191500");
-        invoiceData.setInvoiceNumber("000000123");
-
-        OrderReferences references = new OrderReferences();
-        references.setDescriptor("Fast and Furry-ous");
-        references.setInvoiceData(invoiceData);
-        references.setMerchantOrderId(123456L);
-        references.setMerchantReference("AcmeOrder0001");
-
-        Order order = new Order();
-        order.setAmountOfMoney(amountOfMoney);
-        order.setCustomer(customer);
-        order.setItems(items);
-        order.setReferences(references);
-
-        CreatePaymentRequest body = new CreatePaymentRequest();
-        body.setCardPaymentMethodSpecificInput(cardPaymentMethodSpecificInput);
-        body.setOrder(order);
-        String merchantId = this.properties.getMerchantId();
-        CreatePaymentResponse response;
-        response = this.client.merchant(merchantId).payments().create(body);
-        try {
-        } catch (DeclinedPaymentException e) {
-            //handleDeclinedPayment(e.getCreatePaymentResult());
-        } catch (ApiException e) {
-            //handleApiErrors(e.getErrors());
+            CreateTokenResponse response = client.merchant(this.properties.getMerchantId()).payments().tokenize(paymentInfo.getToken(), body);
+            return null;
         }
+        else {
+            com.ingenico.connect.gateway.sdk.java.domain.definitions.Card card = new com.ingenico.connect.gateway.sdk.java.domain.definitions.Card();
+            card.setCardNumber(paymentInfo.getNumber());
+            card.setCardholderName(paymentInfo.getHolderName());
+            card.setCvv(paymentInfo.getCvc());
+            card.setExpiryDate(paymentInfo.getExpiryDate());
 
-        Payment paymentResponse = response.getPayment();
-        PaymentOutput paymentOutput = paymentResponse.getPaymentOutput();
+            CardPaymentMethodSpecificInput cardPaymentMethodSpecificInput = new CardPaymentMethodSpecificInput();
+            cardPaymentMethodSpecificInput.setCard(card);
+            cardPaymentMethodSpecificInput.setPaymentProductId(paymentInfo.getPaymentProductId());
+            cardPaymentMethodSpecificInput.setSkipAuthentication(false);
+
+            Address billingAddress = new Address();
+            //        billingAddress.setAdditionalInfo("b");
+            billingAddress.setCity(paymentInfo.getCity());
+            billingAddress.setCountryCode(paymentInfo.getCountry());
+            billingAddress.setHouseNumber(paymentInfo.getHouseNumberOrName());
+            billingAddress.setState(paymentInfo.getStateOrProvince());
+            billingAddress.setStreet(paymentInfo.getStreet());
+            billingAddress.setZip(paymentInfo.getPostalCode());
+
+    //        CompanyInformation companyInformation = new CompanyInformation();
+    //        companyInformation.setName("Acme Labs");
+
+            ContactDetails contactDetails = new ContactDetails();
+            contactDetails.setEmailAddress(userData.getShopperEmail());
+            contactDetails.setEmailMessageType("html");
+    //        contactDetails.setFaxNumber("+1234567891");
+            contactDetails.setPhoneNumber(userData.getTelephoneNumber());
+
+            PersonalName name = new PersonalName();
+            name.setFirstName(userData.getFirstName());
+            name.setSurname(userData.getLastName());
+    //        name.setSurnamePrefix("E.");
+    //        name.setTitle("Mr.");
+
+            PersonalInformation personalInformation = new PersonalInformation();
+            personalInformation.setDateOfBirth(userData.getFormattedDateOfBirth("yyyyMMdd"));
+            personalInformation.setGender(userData.getGender());
+            personalInformation.setName(name);
+
+            PersonalName shippingName = new PersonalName();
+            shippingName.setFirstName("Road");
+            shippingName.setSurname("Runner");
+    //        shippingName.setTitle("Miss");
+
+            AddressPersonal shippingAddress = new AddressPersonal();
+            shippingAddress.setAdditionalInfo("Suite II");
+            shippingAddress.setCity("Monument Valley");
+            shippingAddress.setCountryCode("US");
+            shippingAddress.setHouseNumber("1");
+            shippingAddress.setName(shippingName);
+            shippingAddress.setState("Utah");
+            shippingAddress.setStreet("Desertroad");
+            shippingAddress.setZip("84536");
+
+            Customer customer = new Customer();
+            customer.setBillingAddress(billingAddress);
+    //        customer.setCompanyInformation(companyInformation);
+            customer.setContactDetails(contactDetails);
+            customer.setLocale(userData.getShopperLocale().toString());
+            customer.setMerchantCustomerId(userData.getShopperReference());
+            customer.setPersonalInformation(personalInformation);
+            customer.setShippingAddress(shippingAddress);
+            customer.setVatNumber(userData.getVatNumber());
+
+//        List<LineItem> items = new ArrayList<LineItem>();
+//
+//        AmountOfMoney item1AmountOfMoney = new AmountOfMoney();
+//        item1AmountOfMoney.setAmount(2500L);
+//        item1AmountOfMoney.setCurrencyCode("EUR");
+//
+//        LineItemInvoiceData item1InvoiceData = new LineItemInvoiceData();
+//        item1InvoiceData.setDescription("ACME Super Outfit");
+//        item1InvoiceData.setNrOfItems("1");
+//        item1InvoiceData.setPricePerItem(2500L);
+//
+//        LineItem item1 = new LineItem();
+//        item1.setAmountOfMoney(item1AmountOfMoney);
+//        item1.setInvoiceData(item1InvoiceData);
+//
+//        items.add(item1);
+//
+//        AmountOfMoney item2AmountOfMoney = new AmountOfMoney();
+//        item2AmountOfMoney.setAmount(480L);
+//        item2AmountOfMoney.setCurrencyCode("EUR");
+//
+//        LineItemInvoiceData item2InvoiceData = new LineItemInvoiceData();
+//        item2InvoiceData.setDescription("Asperin");
+//        item2InvoiceData.setNrOfItems("12");
+//        item2InvoiceData.setPricePerItem(40L);
+//
+//        LineItem item2 = new LineItem();
+//        item2.setAmountOfMoney(item2AmountOfMoney);
+//        item2.setInvoiceData(item2InvoiceData);
+//
+//        items.add(item2);
+
+            OrderInvoiceData invoiceData = new OrderInvoiceData();
+            invoiceData.setInvoiceDate("20140306191500");
+            invoiceData.setInvoiceNumber("000000123");
+
+            OrderReferences references = new OrderReferences();
+            references.setDescriptor("Fast and Furry-ous");
+            references.setInvoiceData(invoiceData);
+            references.setMerchantOrderId(123456L);
+            references.setMerchantReference("AcmeOrder0001");
+
+            Order order = new Order();
+            order.setAmountOfMoney(amountOfMoney);
+            order.setCustomer(customer);
+            //        order.setItems(items);
+            order.setReferences(references);
+
+            CreatePaymentRequest body = new CreatePaymentRequest();
+            body.setCardPaymentMethodSpecificInput(cardPaymentMethodSpecificInput);
+            body.setOrder(order);
+            String merchantId = this.properties.getMerchantId();
+            CreatePaymentResponse response;
+            response = this.client.merchant(merchantId).payments().create(body);
+            try {
+            } catch (DeclinedPaymentException e) {
+                //handleDeclinedPayment(e.getCreatePaymentResult());
+            } catch (ApiException e) {
+                //handleApiErrors(e.getErrors());
+            }
+
+            Payment paymentResponse = response.getPayment();
+            PaymentOutput paymentOutput = paymentResponse.getPaymentOutput();
 
 
-        final Map<String, String> formParams = new HashMap<String, String>();
-//        formParams.put(AdyenPaymentPluginApi.PROPERTY_PA_REQ, result.getPaRequest());
-//        formParams.put(AdyenPaymentPluginApi.PROPERTY_MD, result.getMd());
-//        formParams.put(AdyenPaymentPluginApi.PROPERTY_DCC_AMOUNT_VALUE, result.getDccAmount() == null ? null : String.valueOf(result.getDccAmount().getValue()));
-//        formParams.put(AdyenPaymentPluginApi.PROPERTY_DCC_AMOUNT_CURRENCY, result.getDccAmount() == null ? null : result.getDccAmount().getCurrency());
-//        formParams.put(AdyenPaymentPluginApi.PROPERTY_DCC_SIGNATURE, result.getDccSignature());
-//        formParams.put(AdyenPaymentPluginApi.PROPERTY_ISSUER_URL, result.getIssuerUrl());
-//        formParams.putAll(extractMpiAdditionalData(result));
-//        formParams.put(AdyenPaymentPluginApi.PROPERTY_TERM_URL, paymentData.getPaymentInfo().getTermUrl());
+            final Map<String, String> additionalData = new HashMap<String, String>();
 
-        return new PurchaseResult(
-                merchantId,
-                paymentResponse.getId(),
-                paymentResponse.getStatus(),
-                paymentOutput.getPaymentMethod(),
-                paymentOutput.getReferences().getMerchantReference(),
-                paymentOutput.getCardPaymentMethodSpecificOutput().getAuthorisationCode(),
-                paymentOutput.getCardPaymentMethodSpecificOutput().getPaymentProductId(),
-                paymentOutput.getCardPaymentMethodSpecificOutput().getFraudResults().getAvsResult(),
-                paymentOutput.getCardPaymentMethodSpecificOutput().getFraudResults().getCvvResult(),
-                paymentOutput.getCardPaymentMethodSpecificOutput().getFraudResults().getFraudServiceResult(),
-                formParams);
+            return new PurchaseResult(
+                    merchantId,
+                    paymentResponse.getId(),
+                    paymentResponse.getStatus(),
+                    paymentOutput.getPaymentMethod(),
+                    paymentOutput.getReferences().getMerchantReference(),
+                    paymentOutput.getCardPaymentMethodSpecificOutput().getAuthorisationCode(),
+                    paymentOutput.getCardPaymentMethodSpecificOutput().getPaymentProductId(),
+                    paymentOutput.getCardPaymentMethodSpecificOutput().getFraudResults().getAvsResult(),
+                    paymentOutput.getCardPaymentMethodSpecificOutput().getFraudResults().getCvvResult(),
+                    paymentOutput.getCardPaymentMethodSpecificOutput().getFraudResults().getFraudServiceResult(),
+                    additionalData);
+        }
     }
 
     public PaymentModificationResponse capture(final PaymentData paymentData, final SplitSettlementData splitSettlementData) {
@@ -262,7 +254,7 @@ public class IngenicoClient implements Closeable {
         return null;
     }
 
-    public String tokenizeCreditCard(Card paymentInfo, UserData userData, final String cardAlias) {
+    public String tokenizeCreditCard(Card paymentInfo, UserData userData) {
         Address billingAddress = new Address();
         //billingAddress.setAdditionalInfo("Suite II");
         billingAddress.setCity(paymentInfo.getCity());
@@ -290,7 +282,6 @@ public class IngenicoClient implements Closeable {
 
         TokenCard tokenCard = new TokenCard();
         tokenCard.setCustomer(customer);
-        tokenCard.setAlias(cardAlias);
 
         CardWithoutCvv cardWithoutCvv = new CardWithoutCvv();
         cardWithoutCvv.setCardNumber(paymentInfo.getNumber());
@@ -303,10 +294,15 @@ public class IngenicoClient implements Closeable {
 
         CreateTokenRequest body = new CreateTokenRequest();
         body.setCard(tokenCard);
-        body.setPaymentProductId(0);
+        body.setPaymentProductId(paymentInfo.getPaymentProductId());
 
-        CreateTokenResponse response = client.merchant(this.properties.getMerchantId()).tokens().create(body);
-        return response.getToken();
+        try {
+            final CreateTokenResponse response = client.merchant(this.properties.getMerchantId()).tokens().create(body);
+            return response.getToken();
+        }
+        catch (Exception e) {
+            return null;
+        }
     }
 
     public PaymentModificationResponse cancel(final String merchantAccount, final PaymentData paymentData, final String pspReference, final SplitSettlementData splitSettlementData) {

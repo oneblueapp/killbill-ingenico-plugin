@@ -16,7 +16,7 @@ package org.killbill.billing.plugin.ingenico.dao.gen.tables;
 @java.lang.SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class IngenicoPaymentMethods extends org.jooq.impl.TableImpl<org.killbill.billing.plugin.ingenico.dao.gen.tables.records.IngenicoPaymentMethodsRecord> {
 
-	private static final long serialVersionUID = 575557586;
+	private static final long serialVersionUID = 632870456;
 
 	/**
 	 * The reference instance of <code>killbill.ingenico_payment_methods</code>
@@ -50,6 +50,11 @@ public class IngenicoPaymentMethods extends org.jooq.impl.TableImpl<org.killbill
 	 * The column <code>killbill.ingenico_payment_methods.token</code>.
 	 */
 	public final org.jooq.TableField<org.killbill.billing.plugin.ingenico.dao.gen.tables.records.IngenicoPaymentMethodsRecord, java.lang.String> TOKEN = createField("token", org.jooq.impl.SQLDataType.VARCHAR.length(255), this, "");
+
+	/**
+	 * The column <code>killbill.ingenico_payment_methods.cc_alias</code>.
+	 */
+	public final org.jooq.TableField<org.killbill.billing.plugin.ingenico.dao.gen.tables.records.IngenicoPaymentMethodsRecord, java.lang.String> CC_ALIAS = createField("cc_alias", org.jooq.impl.SQLDataType.VARCHAR.length(255), this, "");
 
 	/**
 	 * The column <code>killbill.ingenico_payment_methods.cc_first_name</code>.

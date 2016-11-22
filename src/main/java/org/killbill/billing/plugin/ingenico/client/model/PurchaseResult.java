@@ -36,6 +36,7 @@ public class PurchaseResult {
     private final String transactionId;
     private final String status;
     private final String paymentMethod;
+    private String reference;
     private final String merchantReference;
     private final String authorisationCode;
     private final Integer productId;
@@ -192,6 +193,10 @@ public class PurchaseResult {
 
     public String getPgTransactionMethod() {
         return paymentMethod;
+    }
+
+    public String getReference() {
+        return reference;
     }
 
     public String getPgMerchantReference() {

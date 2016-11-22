@@ -1,10 +1,10 @@
 package org.killbill.billing.plugin.ingenico.core;
 
+import org.killbill.billing.osgi.libs.killbill.OSGIKillbillAPI;
+import org.killbill.billing.osgi.libs.killbill.OSGIKillbillLogService;
 import org.killbill.billing.plugin.api.notification.PluginTenantConfigurableConfigurationHandler;
 import org.killbill.billing.plugin.ingenico.client.IngenicoClient;
 import org.killbill.billing.plugin.ingenico.client.IngenicoConfigProperties;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillAPI;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 import java.util.Properties;
 
 /**

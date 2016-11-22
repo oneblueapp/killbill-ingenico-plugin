@@ -20,13 +20,13 @@ package org.killbill.billing.plugin.ingenico.core;
 import org.killbill.billing.account.api.Account;
 import org.killbill.billing.account.api.AccountApiException;
 import org.killbill.billing.notification.plugin.api.ExtBusEvent;
+import org.killbill.billing.osgi.libs.killbill.OSGIKillbillAPI;
+import org.killbill.billing.osgi.libs.killbill.OSGIKillbillEventDispatcher;
+import org.killbill.billing.osgi.libs.killbill.OSGIKillbillLogService;
 import org.killbill.billing.plugin.api.PluginTenantContext;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillAPI;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillEventDispatcher.OSGIKillbillEventHandler;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 import org.osgi.service.log.LogService;
 
-public class IngenicoListener implements OSGIKillbillEventHandler {
+public class IngenicoListener implements OSGIKillbillEventDispatcher.OSGIKillbillEventHandler {
 
     private final LogService logService;
     private final OSGIKillbillAPI osgiKillbillAPI;

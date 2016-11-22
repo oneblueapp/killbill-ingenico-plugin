@@ -30,6 +30,15 @@ public class Card extends PaymentInfo {
     // Special fields
     private String issuerCountry;
     private String token;
+    private String alias;
+
+    public void setAlias(final String alias) {
+        this.alias = alias;
+    }
+
+    public String getAlias() {
+        return this.alias;
+    }
 
     public String getHolderName() {
         return holderName;

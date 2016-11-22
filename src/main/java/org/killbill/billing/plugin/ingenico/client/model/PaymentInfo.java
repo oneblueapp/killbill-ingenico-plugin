@@ -17,8 +17,6 @@
 
 package org.killbill.billing.plugin.ingenico.client.model;
 
-import java.util.Map;
-
 public class PaymentInfo {
     private String shopperInteraction;
     private String shopperStatement;
@@ -33,7 +31,7 @@ public class PaymentInfo {
     // Special fields
     private String acquirer;
     private String acquirerMID;
-    private String selectedBrand;
+    private Integer paymentProductId;
 
     public String getShopperInteraction() {
         return shopperInteraction;
@@ -99,12 +97,12 @@ public class PaymentInfo {
         this.country = country;
     }
 
-    public String getSelectedBrand() {
-        return selectedBrand;
+    public Integer getPaymentProductId() {
+        return paymentProductId;
     }
 
-    public void setSelectedBrand(final String selectedBrand) {
-        this.selectedBrand = selectedBrand;
+    public void setPaymentProductId(final Integer paymentProductId) {
+        this.paymentProductId = paymentProductId;
     }
 
     @Override
@@ -120,7 +118,7 @@ public class PaymentInfo {
         sb.append(", country='").append(country).append('\'');
         sb.append(", acquirer='").append(acquirer).append('\'');
         sb.append(", acquirerMID='").append(acquirerMID).append('\'');
-        sb.append(", selectedBrand='").append(selectedBrand).append('\'');
+        sb.append(", paymentProductId='").append(paymentProductId).append('\'');
         sb.append('}');
         return sb.toString();
     }
@@ -166,7 +164,7 @@ public class PaymentInfo {
         if (acquirerMID != null ? !acquirerMID.equals(that.acquirerMID) : that.acquirerMID != null) {
             return false;
         }
-        return selectedBrand != null ? selectedBrand.equals(that.selectedBrand) : that.selectedBrand == null;
+        return paymentProductId != null ? paymentProductId.equals(that.paymentProductId) : that.paymentProductId == null;
 
     }
 
@@ -182,7 +180,7 @@ public class PaymentInfo {
         result = 31 * result + (country != null ? country.hashCode() : 0);
         result = 31 * result + (acquirer != null ? acquirer.hashCode() : 0);
         result = 31 * result + (acquirerMID != null ? acquirerMID.hashCode() : 0);
-        result = 31 * result + (selectedBrand != null ? selectedBrand.hashCode() : 0);
+        result = 31 * result + (paymentProductId != null ? paymentProductId.hashCode() : 0);
         return result;
     }
 }

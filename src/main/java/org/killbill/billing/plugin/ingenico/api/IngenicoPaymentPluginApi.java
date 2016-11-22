@@ -22,10 +22,14 @@ import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+
 import org.joda.time.DateTime;
 import org.killbill.billing.account.api.Account;
 import org.killbill.billing.account.api.AccountData;
 import org.killbill.billing.catalog.api.Currency;
+import org.killbill.billing.osgi.libs.killbill.OSGIConfigPropertiesService;
+import org.killbill.billing.osgi.libs.killbill.OSGIKillbillAPI;
+import org.killbill.billing.osgi.libs.killbill.OSGIKillbillLogService;
 import org.killbill.billing.payment.api.*;
 import org.killbill.billing.payment.plugin.api.*;
 import org.killbill.billing.plugin.api.PluginProperties;
@@ -45,9 +49,6 @@ import org.killbill.billing.util.callcontext.CallContext;
 import org.killbill.billing.util.callcontext.TenantContext;
 import org.killbill.billing.util.entity.Pagination;
 import org.killbill.clock.Clock;
-import org.killbill.killbill.osgi.libs.killbill.OSGIConfigPropertiesService;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillAPI;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 import org.osgi.service.log.LogService;
 
 import javax.annotation.Nullable;
@@ -222,15 +223,18 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
         final IngenicoClient client = ingenicoConfigurationHandler.getConfigurable(context.getTenantId());
 
         final Account account = getAccount(kbAccountId, context);
-        final Card paymentInfo = (Card) buildPaymentInfo(account, properties, context);
+        final Card paymentInfo = (Card) buildPaymentInfo(account, paymentMethodProps.getProperties(), context);
 
         final UserData userData = toUserData(account, properties);
-        final String cardAlias = safePropertiesMap.get("");
-        final String token = client.tokenizeCreditCard(paymentInfo, userData, cardAlias);
+        final String token = client.tokenizeCreditCard(paymentInfo, userData);
+        if (token == null) {
+            return;
+        }
         safePropertiesMap.put(PROPERTY_TOKEN, token);
 
         // Delete sensitive data
         safePropertiesMap.remove(PROPERTY_CC_NUMBER);
+        safePropertiesMap.remove(PROPERTY_CC_VERIFICATION_VALUE);
         //safePropertiesMap.remove(PROPERTY_ACCOUNT_NUMBER);
         final PluginPaymentMethodPlugin safePaymentMethodProps = new PluginPaymentMethodPlugin(kbPaymentMethodId, token, setDefault, ImmutableList.<PluginProperty>of());
 
@@ -309,7 +313,7 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
                                                  if (transactionType == TransactionType.CREDIT) {
                                                      return ingenicoClient.credit(paymentData, splitSettlementData);
                                                  } else {
-                                                     return ingenicoClient.create(paymentData, userData, splitSettlementData);
+                                                     return ingenicoClient.create(paymentData, userData);
                                                  }
                                              }
                                          },
@@ -368,13 +372,13 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
                                                                     final TenantContext context) throws PaymentPluginApiException {
         final Account account = getAccount(kbAccountId, context);
 
-        final String pspReference;
+        final String merchantReference;
         try {
             final IngenicoResponsesRecord previousResponse = dao.getSuccessfulAuthorizationResponse(kbPaymentId, context.getTenantId());
             if (previousResponse == null) {
                 throw new PaymentPluginApiException(null, "Unable to retrieve previous payment response for kbTransactionId " + kbTransactionId);
             }
-            pspReference = previousResponse.getPgReference();
+            merchantReference = previousResponse.getPgMerchantReference();
         } catch (final SQLException e) {
             throw new PaymentPluginApiException("Unable to retrieve previous payment response for kbTransactionId " + kbTransactionId, e);
         }
@@ -386,7 +390,7 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
 
         final String merchantAccount = getMerchantAccount(paymentData, properties, context);
 
-        final PaymentModificationResponse response = transactionExecutor.execute(merchantAccount, paymentData, pspReference, splitSettlementData);
+        final PaymentModificationResponse response = transactionExecutor.execute(merchantAccount, paymentData, merchantReference, splitSettlementData);
         final Optional<PaymentServiceProviderResult> paymentServiceProviderResult;
         if (response.isTechnicallySuccessful()) {
             paymentServiceProviderResult = Optional.of(PaymentServiceProviderResult.RECEIVED);
@@ -413,7 +417,7 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
     private PaymentData<PaymentInfo> buildPaymentData(final AccountData account, final UUID kbPaymentId, final UUID kbTransactionId, final IngenicoPaymentMethodsRecord paymentMethodsRecord, final BigDecimal amount, final Currency currency, final Iterable<PluginProperty> properties, final TenantContext context) throws PaymentPluginApiException {
         final Payment payment;
         try {
-            payment = killbillAPI.getPaymentApi().getPayment(kbPaymentId, false, properties, context);
+            payment = killbillAPI.getPaymentApi().getPayment(kbPaymentId, false, false, properties, context);
         } catch (final PaymentApiException e) {
             throw new PaymentPluginApiException(String.format("Unable to retrieve kbPaymentId='%s'", kbPaymentId), e);
         }

@@ -21,8 +21,6 @@ import org.killbill.billing.account.api.AccountData;
 import org.killbill.billing.payment.api.PluginProperty;
 import org.killbill.billing.plugin.api.PluginProperties;
 import org.killbill.billing.plugin.ingenico.client.model.PaymentInfo;
-import org.killbill.billing.plugin.ingenico.client.model.paymentinfo.Card;
-import org.killbill.billing.plugin.ingenico.client.model.paymentinfo.Recurring;
 import org.killbill.billing.plugin.ingenico.dao.gen.tables.records.IngenicoPaymentMethodsRecord;
 import org.killbill.clock.Clock;
 
@@ -94,34 +92,9 @@ public abstract class PaymentInfoMappingService {
     }
 
     private static void setSelectedBrand(final PaymentInfo paymentInfo, final Iterable<PluginProperty> properties) {
-        // For the MisterCash payment method, it can be set to maestro (default, to be processed like a Maestro card) or bcmc (to be processed like a MisterCash card)
-        // It can also be set to specific values for DineroMail or to force recurring ELV contracts to be handled as SEPA
-        final String selectedBrand = PluginProperties.findPluginPropertyValue(PROPERTY_CC_TYPE, properties);
-//        1	Visa
-//        2	American Express
-//        3	MasterCard
-//        114	Visa Debit
-//        117	Maestro
-//        119	MasterCard Debit
-//        122	Visa Electron
-//        125	JCB
-//        128	Discover
-//        130	Carte Bancaire
-//        132	Diners Club
-//        135	Cabal
-//        136	Naranja
-//        137	Nevada
-//        139	Italcred
-//        140	Argencard
-//        141	Consumax
-//        142	Mas
-//        144	Pyme Nacion
-//        145	Nativa
-//        146	Aura
-//        147	ELO
-//        148	Hipercard
-//        149	Tarjeta Shopping
-        paymentInfo.setSelectedBrand(selectedBrand);
+        final String brand = PluginProperties.findPluginPropertyValue(PROPERTY_CC_TYPE, properties);
+        final Integer paymentProductId = PaymentProductMappingService.toPaymentProductId(brand);
+        paymentInfo.setPaymentProductId(paymentProductId);
     }
 
     private static String decode(final String value) {
