@@ -313,7 +313,7 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
                                                  if (transactionType == TransactionType.CREDIT) {
                                                      return ingenicoClient.credit(paymentData, splitSettlementData);
                                                  } else {
-                                                     return ingenicoClient.create(paymentData, userData);
+                                                     return ingenicoClient.create(paymentData, userData, splitSettlementData);
                                                  }
                                              }
                                          },

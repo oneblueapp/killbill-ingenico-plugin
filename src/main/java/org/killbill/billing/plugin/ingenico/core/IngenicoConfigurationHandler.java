@@ -5,6 +5,10 @@ import org.killbill.billing.osgi.libs.killbill.OSGIKillbillLogService;
 import org.killbill.billing.plugin.api.notification.PluginTenantConfigurableConfigurationHandler;
 import org.killbill.billing.plugin.ingenico.client.IngenicoClient;
 import org.killbill.billing.plugin.ingenico.client.IngenicoConfigProperties;
+import org.killbill.billing.plugin.ingenico.client.payment.builder.IngenicoRequestFactory;
+import org.killbill.billing.plugin.ingenico.client.payment.converter.PaymentInfoConverterManagement;
+import org.killbill.billing.plugin.ingenico.client.payment.converter.impl.PaymentInfoConverterService;
+
 import java.util.Properties;
 
 /**
@@ -18,6 +22,10 @@ public class IngenicoConfigurationHandler extends PluginTenantConfigurableConfig
     @Override
     protected IngenicoClient createConfigurable(final Properties properties) {
         final IngenicoConfigProperties ingenicoConfigProperties = new IngenicoConfigProperties(properties);
-        return new IngenicoClient(ingenicoConfigProperties);
+
+        final PaymentInfoConverterManagement paymentInfoConverterManagement = new PaymentInfoConverterService();
+
+        final IngenicoRequestFactory ingenicoRequestFactory = new IngenicoRequestFactory(paymentInfoConverterManagement, ingenicoConfigProperties);
+        return new IngenicoClient(ingenicoRequestFactory, ingenicoConfigProperties);
     }
 }
