@@ -79,52 +79,35 @@ public class IngenicoClient implements Closeable {
     }
 
     public PurchaseResult create(PaymentData<Card> paymentData, UserData userData, final SplitSettlementData splitSettlementData) {
-        PaymentInfo paymentInfo = paymentData.getPaymentInfo();
-
-        AmountOfMoney amountOfMoney = new AmountOfMoney();
-        amountOfMoney.setAmount(paymentData.getAmount());
-        amountOfMoney.setCurrencyCode(paymentData.getCurrency().name());
-
-        if (paymentInfo instanceof  Recurring) {
-            Recurring recurring = (Recurring)paymentInfo;
-            TokenizePaymentRequest body = new TokenizePaymentRequest();
-
-            CreateTokenResponse response = client.merchant(this.properties.getMerchantId()).payments().tokenize(recurring.getRecurringDetailReference(), body);
-            return null;
-        }
-        else if (paymentInfo instanceof  Card){
-            CreatePaymentRequest body = ingenicoRequestFactory.createPaymentRequest(paymentData, userData, splitSettlementData);
-            String merchantId = this.properties.getMerchantId();
-            CreatePaymentResponse response;
-            response = this.client.merchant(merchantId).payments().create(body);
-            try {
-            } catch (DeclinedPaymentException e) {
-                //handleDeclinedPayment(e.getCreatePaymentResult());
-            } catch (ApiException e) {
-                //handleApiErrors(e.getErrors());
-            }
-
-            Payment paymentResponse = response.getPayment();
-            PaymentOutput paymentOutput = paymentResponse.getPaymentOutput();
-
-
-            final Map<String, String> additionalData = new HashMap<String, String>();
-
-            return new PurchaseResult(
-                    merchantId,
-                    paymentResponse.getId(),
-                    paymentResponse.getStatus(),
-                    paymentOutput.getPaymentMethod(),
-                    paymentOutput.getReferences().getMerchantReference(),
-                    paymentOutput.getCardPaymentMethodSpecificOutput().getAuthorisationCode(),
-                    paymentOutput.getCardPaymentMethodSpecificOutput().getPaymentProductId(),
-                    paymentOutput.getCardPaymentMethodSpecificOutput().getFraudResults().getAvsResult(),
-                    paymentOutput.getCardPaymentMethodSpecificOutput().getFraudResults().getCvvResult(),
-                    paymentOutput.getCardPaymentMethodSpecificOutput().getFraudResults().getFraudServiceResult(),
-                    additionalData);
+        CreatePaymentRequest body = ingenicoRequestFactory.createPaymentRequest(paymentData, userData, splitSettlementData);
+        String merchantId = this.properties.getMerchantId();
+        CreatePaymentResponse response;
+        response = this.client.merchant(merchantId).payments().create(body);
+        try {
+        } catch (DeclinedPaymentException e) {
+            //handleDeclinedPayment(e.getCreatePaymentResult());
+        } catch (ApiException e) {
+            //handleApiErrors(e.getErrors());
         }
 
-        return null;
+        Payment paymentResponse = response.getPayment();
+        PaymentOutput paymentOutput = paymentResponse.getPaymentOutput();
+
+
+        final Map<String, String> additionalData = new HashMap<String, String>();
+
+        return new PurchaseResult(
+                merchantId,
+                paymentResponse.getId(),
+                paymentResponse.getStatus(),
+                paymentOutput.getPaymentMethod(),
+                paymentOutput.getReferences().getMerchantReference(),
+                paymentOutput.getCardPaymentMethodSpecificOutput().getAuthorisationCode(),
+                paymentOutput.getCardPaymentMethodSpecificOutput().getPaymentProductId(),
+                paymentOutput.getCardPaymentMethodSpecificOutput().getFraudResults().getAvsResult(),
+                paymentOutput.getCardPaymentMethodSpecificOutput().getFraudResults().getCvvResult(),
+                paymentOutput.getCardPaymentMethodSpecificOutput().getFraudResults().getFraudServiceResult(),
+                additionalData);
     }
 
     public PaymentModificationResponse capture(final PaymentData paymentData, final SplitSettlementData splitSettlementData) {

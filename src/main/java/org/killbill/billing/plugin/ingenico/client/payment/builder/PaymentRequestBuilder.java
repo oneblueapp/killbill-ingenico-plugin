@@ -32,6 +32,7 @@ import org.killbill.billing.plugin.ingenico.client.payment.converter.PaymentInfo
 
 import com.google.common.base.Charsets;
 import com.google.common.io.BaseEncoding;
+import com.ingenico.connect.gateway.sdk.java.domain.definitions.Address;
 import com.ingenico.connect.gateway.sdk.java.domain.definitions.AmountOfMoney;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.CreatePaymentRequest;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.AddressPersonal;
@@ -58,7 +59,7 @@ public class PaymentRequestBuilder extends RequestBuilder<CreatePaymentRequest> 
         this.paymentData = paymentData;
         this.userData = userData;
         this.splitSettlementData = splitSettlementData;
-        this.order = new Order();
+        this.order = request.getOrder();
     }
 
     @Override
@@ -124,8 +125,8 @@ public class PaymentRequestBuilder extends RequestBuilder<CreatePaymentRequest> 
         customer.setPersonalInformation(personalInformation);
         customer.setVatNumber(userData.getVatNumber());
 
-        //customer.setBillingAddress(billingAddress);
         //customer.setCompanyInformation(companyInformation););;
+        order.setCustomer(customer);
     }
 
     private void setShippingAddress() {
@@ -146,6 +147,7 @@ public class PaymentRequestBuilder extends RequestBuilder<CreatePaymentRequest> 
 
         Customer customer = order.getCustomer() != null ? order.getCustomer() : new Customer();
         customer.setShippingAddress(shippingAddress);
+        order.setCustomer(customer);
     }
 
     private void setSplitSettlementData() {

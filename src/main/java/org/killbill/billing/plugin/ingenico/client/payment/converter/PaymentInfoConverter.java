@@ -20,9 +20,18 @@ package org.killbill.billing.plugin.ingenico.client.payment.converter;
 import org.killbill.billing.plugin.ingenico.client.model.PaymentInfo;
 
 import com.google.common.base.Strings;
+import com.ingenico.connect.gateway.sdk.java.domain.definitions.Address;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.CreatePaymentRequest;
+import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.Customer;
+import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.Order;
 
 public class PaymentInfoConverter<T extends PaymentInfo> {
+
+    final private Order order;
+
+    public PaymentInfoConverter() {
+        order = new Order();
+    }
 
     /**
      * @param paymentInfo to convert
@@ -45,7 +54,7 @@ public class PaymentInfoConverter<T extends PaymentInfo> {
         setInstallments(paymentInfo, paymentRequest);
         setBillingAddress(paymentInfo, paymentRequest);
         setAcquirer(paymentInfo, paymentRequest);
-
+        paymentRequest.setOrder(order);
         return paymentRequest;
     }
 
@@ -58,21 +67,19 @@ public class PaymentInfoConverter<T extends PaymentInfo> {
     }
 
     private void setBillingAddress(final PaymentInfo paymentInfo, final CreatePaymentRequest paymentRequest) {
-//        final Address address = new Address();
-//        address.setStreet(paymentInfo.getStreet());
-//        address.setHouseNumberOrName(paymentInfo.getHouseNumberOrName());
-//        address.setCity(paymentInfo.getCity());
-//        address.setPostalCode(paymentInfo.getPostalCode());
-//        address.setStateOrProvince(paymentInfo.getStateOrProvince());
-//
-//        // Passing UK will result in: validation 134 Billing address problem (Country UK invalid)
-//        final String adjustedCountry = "UK".equalsIgnoreCase(paymentInfo.getCountry()) ? "GB" : paymentInfo.getCountry();
-//        address.setCountry(adjustedCountry);
-//
-//        // Required by Adyen
-//        if (address.getHouseNumberOrName() != null && address.getCity() != null) {
-//            paymentRequest.setBillingAddress(address);
-//        }
+        final Address address = new Address();
+        address.setStreet(paymentInfo.getStreet());
+        address.setHouseNumber(paymentInfo.getHouseNumberOrName());
+        address.setCity(paymentInfo.getCity());
+        address.setZip(paymentInfo.getPostalCode());
+        address.setState(paymentInfo.getStateOrProvince());
+
+        final String adjustedCountry = paymentInfo.getCountry();
+        address.setCountryCode(adjustedCountry);
+        Customer customer = order.getCustomer() != null ? order.getCustomer() : new Customer();
+        customer.setBillingAddress(address);
+        order.setCustomer(customer);
+        paymentRequest.setOrder(order);
     }
 
     private void setAcquirer(final PaymentInfo paymentInfo, final CreatePaymentRequest paymentRequest) {

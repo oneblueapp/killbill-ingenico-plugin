@@ -104,6 +104,7 @@ public class UserData {
     }
 
     public String getFormattedDateOfBirth(String format) {
+        if(null == getDateOfBirth()) return null;
         SimpleDateFormat ft = new SimpleDateFormat(format);
         return ft.format(getDateOfBirth());
     }

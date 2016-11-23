@@ -23,7 +23,6 @@ import org.killbill.billing.plugin.ingenico.client.payment.converter.PaymentInfo
 
 import com.ingenico.connect.gateway.sdk.java.domain.payment.CreatePaymentRequest;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.CardPaymentMethodSpecificInput;
-import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.Order;
 
 public class RecurringConverter extends PaymentInfoConverter<Recurring> {
 
@@ -42,15 +41,14 @@ public class RecurringConverter extends PaymentInfoConverter<Recurring> {
     }
 
     private void setCvcForOneClick(final Recurring paymentInfo, final CreatePaymentRequest paymentRequest) {
-        if (paymentInfo.getCvc() != null) {
-            final com.ingenico.connect.gateway.sdk.java.domain.definitions.Card card = new com.ingenico.connect.gateway.sdk.java.domain.definitions.Card();
-            card.setCvv(paymentInfo.getCvc());
-            Order order = paymentRequest.getOrder() != null ? paymentRequest.getOrder() : new Order();
+        final com.ingenico.connect.gateway.sdk.java.domain.definitions.Card card = new com.ingenico.connect.gateway.sdk.java.domain.definitions.Card();
+        card.setCvv(paymentInfo.getCvc());
 
-            final CardPaymentMethodSpecificInput cardPaymentMethodSpecificInput = new CardPaymentMethodSpecificInput();
-            cardPaymentMethodSpecificInput.setIsRecurring(true);
-            cardPaymentMethodSpecificInput.setToken(paymentInfo.getRecurringDetailReference());
-            paymentRequest.setCardPaymentMethodSpecificInput(cardPaymentMethodSpecificInput);
-        }
+        final CardPaymentMethodSpecificInput cardPaymentMethodSpecificInput = new CardPaymentMethodSpecificInput();
+//        cardPaymentMethodSpecificInput.setIsRecurring(true);
+//        cardPaymentMethodSpecificInput.setRecurringPaymentSequenceIndicator("first|recurring");
+//        cardPaymentMethodSpecificInput.setPaymentProductId(paymentInfo.getPaymentProductId());
+        cardPaymentMethodSpecificInput.setToken(paymentInfo.getRecurringDetailReference());
+        paymentRequest.setCardPaymentMethodSpecificInput(cardPaymentMethodSpecificInput);
     }
 }

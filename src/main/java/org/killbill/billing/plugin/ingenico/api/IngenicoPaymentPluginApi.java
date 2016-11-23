@@ -228,7 +228,7 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
         final UserData userData = toUserData(account, properties);
         final String token = client.tokenizeCreditCard(paymentInfo, userData);
         if (token == null) {
-            return;
+            throw new PaymentPluginApiException("Token not created", "Unable to create token");
         }
         safePropertiesMap.put(PROPERTY_TOKEN, token);
 
