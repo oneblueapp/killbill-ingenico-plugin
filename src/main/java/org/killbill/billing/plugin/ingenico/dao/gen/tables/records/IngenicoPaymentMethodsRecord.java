@@ -16,7 +16,7 @@ package org.killbill.billing.plugin.ingenico.dao.gen.tables.records;
 @java.lang.SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class IngenicoPaymentMethodsRecord extends org.jooq.impl.UpdatableRecordImpl<org.killbill.billing.plugin.ingenico.dao.gen.tables.records.IngenicoPaymentMethodsRecord> {
 
-	private static final long serialVersionUID = -636552666;
+	private static final long serialVersionUID = -125273950;
 
 	/**
 	 * Setter for <code>killbill.ingenico_payment_methods.record_id</code>.
@@ -75,353 +75,339 @@ public class IngenicoPaymentMethodsRecord extends org.jooq.impl.UpdatableRecordI
 	}
 
 	/**
-	 * Setter for <code>killbill.ingenico_payment_methods.cc_alias</code>.
-	 */
-	public void setCcAlias(java.lang.String value) {
-		setValue(4, value);
-	}
-
-	/**
-	 * Getter for <code>killbill.ingenico_payment_methods.cc_alias</code>.
-	 */
-	public java.lang.String getCcAlias() {
-		return (java.lang.String) getValue(4);
-	}
-
-	/**
 	 * Setter for <code>killbill.ingenico_payment_methods.cc_first_name</code>.
 	 */
 	public void setCcFirstName(java.lang.String value) {
-		setValue(5, value);
+		setValue(4, value);
 	}
 
 	/**
 	 * Getter for <code>killbill.ingenico_payment_methods.cc_first_name</code>.
 	 */
 	public java.lang.String getCcFirstName() {
-		return (java.lang.String) getValue(5);
+		return (java.lang.String) getValue(4);
 	}
 
 	/**
 	 * Setter for <code>killbill.ingenico_payment_methods.cc_last_name</code>.
 	 */
 	public void setCcLastName(java.lang.String value) {
-		setValue(6, value);
+		setValue(5, value);
 	}
 
 	/**
 	 * Getter for <code>killbill.ingenico_payment_methods.cc_last_name</code>.
 	 */
 	public java.lang.String getCcLastName() {
-		return (java.lang.String) getValue(6);
+		return (java.lang.String) getValue(5);
 	}
 
 	/**
 	 * Setter for <code>killbill.ingenico_payment_methods.cc_type</code>.
 	 */
 	public void setCcType(java.lang.String value) {
-		setValue(7, value);
+		setValue(6, value);
 	}
 
 	/**
 	 * Getter for <code>killbill.ingenico_payment_methods.cc_type</code>.
 	 */
 	public java.lang.String getCcType() {
-		return (java.lang.String) getValue(7);
+		return (java.lang.String) getValue(6);
 	}
 
 	/**
 	 * Setter for <code>killbill.ingenico_payment_methods.cc_exp_month</code>.
 	 */
 	public void setCcExpMonth(java.lang.String value) {
-		setValue(8, value);
+		setValue(7, value);
 	}
 
 	/**
 	 * Getter for <code>killbill.ingenico_payment_methods.cc_exp_month</code>.
 	 */
 	public java.lang.String getCcExpMonth() {
-		return (java.lang.String) getValue(8);
+		return (java.lang.String) getValue(7);
 	}
 
 	/**
 	 * Setter for <code>killbill.ingenico_payment_methods.cc_exp_year</code>.
 	 */
 	public void setCcExpYear(java.lang.String value) {
-		setValue(9, value);
+		setValue(8, value);
 	}
 
 	/**
 	 * Getter for <code>killbill.ingenico_payment_methods.cc_exp_year</code>.
 	 */
 	public java.lang.String getCcExpYear() {
-		return (java.lang.String) getValue(9);
+		return (java.lang.String) getValue(8);
 	}
 
 	/**
 	 * Setter for <code>killbill.ingenico_payment_methods.cc_number</code>.
 	 */
 	public void setCcNumber(java.lang.String value) {
-		setValue(10, value);
+		setValue(9, value);
 	}
 
 	/**
 	 * Getter for <code>killbill.ingenico_payment_methods.cc_number</code>.
 	 */
 	public java.lang.String getCcNumber() {
-		return (java.lang.String) getValue(10);
+		return (java.lang.String) getValue(9);
 	}
 
 	/**
 	 * Setter for <code>killbill.ingenico_payment_methods.cc_last_4</code>.
 	 */
 	public void setCcLast_4(java.lang.String value) {
-		setValue(11, value);
+		setValue(10, value);
 	}
 
 	/**
 	 * Getter for <code>killbill.ingenico_payment_methods.cc_last_4</code>.
 	 */
 	public java.lang.String getCcLast_4() {
-		return (java.lang.String) getValue(11);
+		return (java.lang.String) getValue(10);
 	}
 
 	/**
 	 * Setter for <code>killbill.ingenico_payment_methods.cc_start_month</code>.
 	 */
 	public void setCcStartMonth(java.lang.String value) {
-		setValue(12, value);
+		setValue(11, value);
 	}
 
 	/**
 	 * Getter for <code>killbill.ingenico_payment_methods.cc_start_month</code>.
 	 */
 	public java.lang.String getCcStartMonth() {
-		return (java.lang.String) getValue(12);
+		return (java.lang.String) getValue(11);
 	}
 
 	/**
 	 * Setter for <code>killbill.ingenico_payment_methods.cc_start_year</code>.
 	 */
 	public void setCcStartYear(java.lang.String value) {
-		setValue(13, value);
+		setValue(12, value);
 	}
 
 	/**
 	 * Getter for <code>killbill.ingenico_payment_methods.cc_start_year</code>.
 	 */
 	public java.lang.String getCcStartYear() {
-		return (java.lang.String) getValue(13);
+		return (java.lang.String) getValue(12);
 	}
 
 	/**
 	 * Setter for <code>killbill.ingenico_payment_methods.cc_issue_number</code>.
 	 */
 	public void setCcIssueNumber(java.lang.String value) {
-		setValue(14, value);
+		setValue(13, value);
 	}
 
 	/**
 	 * Getter for <code>killbill.ingenico_payment_methods.cc_issue_number</code>.
 	 */
 	public java.lang.String getCcIssueNumber() {
-		return (java.lang.String) getValue(14);
+		return (java.lang.String) getValue(13);
 	}
 
 	/**
 	 * Setter for <code>killbill.ingenico_payment_methods.cc_verification_value</code>.
 	 */
 	public void setCcVerificationValue(java.lang.String value) {
-		setValue(15, value);
+		setValue(14, value);
 	}
 
 	/**
 	 * Getter for <code>killbill.ingenico_payment_methods.cc_verification_value</code>.
 	 */
 	public java.lang.String getCcVerificationValue() {
-		return (java.lang.String) getValue(15);
+		return (java.lang.String) getValue(14);
 	}
 
 	/**
 	 * Setter for <code>killbill.ingenico_payment_methods.cc_track_data</code>.
 	 */
 	public void setCcTrackData(java.lang.String value) {
-		setValue(16, value);
+		setValue(15, value);
 	}
 
 	/**
 	 * Getter for <code>killbill.ingenico_payment_methods.cc_track_data</code>.
 	 */
 	public java.lang.String getCcTrackData() {
-		return (java.lang.String) getValue(16);
+		return (java.lang.String) getValue(15);
 	}
 
 	/**
 	 * Setter for <code>killbill.ingenico_payment_methods.address1</code>.
 	 */
 	public void setAddress1(java.lang.String value) {
-		setValue(17, value);
+		setValue(16, value);
 	}
 
 	/**
 	 * Getter for <code>killbill.ingenico_payment_methods.address1</code>.
 	 */
 	public java.lang.String getAddress1() {
-		return (java.lang.String) getValue(17);
+		return (java.lang.String) getValue(16);
 	}
 
 	/**
 	 * Setter for <code>killbill.ingenico_payment_methods.address2</code>.
 	 */
 	public void setAddress2(java.lang.String value) {
-		setValue(18, value);
+		setValue(17, value);
 	}
 
 	/**
 	 * Getter for <code>killbill.ingenico_payment_methods.address2</code>.
 	 */
 	public java.lang.String getAddress2() {
-		return (java.lang.String) getValue(18);
+		return (java.lang.String) getValue(17);
 	}
 
 	/**
 	 * Setter for <code>killbill.ingenico_payment_methods.city</code>.
 	 */
 	public void setCity(java.lang.String value) {
-		setValue(19, value);
+		setValue(18, value);
 	}
 
 	/**
 	 * Getter for <code>killbill.ingenico_payment_methods.city</code>.
 	 */
 	public java.lang.String getCity() {
-		return (java.lang.String) getValue(19);
+		return (java.lang.String) getValue(18);
 	}
 
 	/**
 	 * Setter for <code>killbill.ingenico_payment_methods.state</code>.
 	 */
 	public void setState(java.lang.String value) {
-		setValue(20, value);
+		setValue(19, value);
 	}
 
 	/**
 	 * Getter for <code>killbill.ingenico_payment_methods.state</code>.
 	 */
 	public java.lang.String getState() {
-		return (java.lang.String) getValue(20);
+		return (java.lang.String) getValue(19);
 	}
 
 	/**
 	 * Setter for <code>killbill.ingenico_payment_methods.zip</code>.
 	 */
 	public void setZip(java.lang.String value) {
-		setValue(21, value);
+		setValue(20, value);
 	}
 
 	/**
 	 * Getter for <code>killbill.ingenico_payment_methods.zip</code>.
 	 */
 	public java.lang.String getZip() {
-		return (java.lang.String) getValue(21);
+		return (java.lang.String) getValue(20);
 	}
 
 	/**
 	 * Setter for <code>killbill.ingenico_payment_methods.country</code>.
 	 */
 	public void setCountry(java.lang.String value) {
-		setValue(22, value);
+		setValue(21, value);
 	}
 
 	/**
 	 * Getter for <code>killbill.ingenico_payment_methods.country</code>.
 	 */
 	public java.lang.String getCountry() {
-		return (java.lang.String) getValue(22);
+		return (java.lang.String) getValue(21);
 	}
 
 	/**
 	 * Setter for <code>killbill.ingenico_payment_methods.is_default</code>.
 	 */
 	public void setIsDefault(java.lang.Byte value) {
-		setValue(23, value);
+		setValue(22, value);
 	}
 
 	/**
 	 * Getter for <code>killbill.ingenico_payment_methods.is_default</code>.
 	 */
 	public java.lang.Byte getIsDefault() {
-		return (java.lang.Byte) getValue(23);
+		return (java.lang.Byte) getValue(22);
 	}
 
 	/**
 	 * Setter for <code>killbill.ingenico_payment_methods.is_deleted</code>.
 	 */
 	public void setIsDeleted(java.lang.Byte value) {
-		setValue(24, value);
+		setValue(23, value);
 	}
 
 	/**
 	 * Getter for <code>killbill.ingenico_payment_methods.is_deleted</code>.
 	 */
 	public java.lang.Byte getIsDeleted() {
-		return (java.lang.Byte) getValue(24);
+		return (java.lang.Byte) getValue(23);
 	}
 
 	/**
 	 * Setter for <code>killbill.ingenico_payment_methods.additional_data</code>.
 	 */
 	public void setAdditionalData(java.lang.String value) {
-		setValue(25, value);
+		setValue(24, value);
 	}
 
 	/**
 	 * Getter for <code>killbill.ingenico_payment_methods.additional_data</code>.
 	 */
 	public java.lang.String getAdditionalData() {
-		return (java.lang.String) getValue(25);
+		return (java.lang.String) getValue(24);
 	}
 
 	/**
 	 * Setter for <code>killbill.ingenico_payment_methods.created_date</code>.
 	 */
 	public void setCreatedDate(java.sql.Timestamp value) {
-		setValue(26, value);
+		setValue(25, value);
 	}
 
 	/**
 	 * Getter for <code>killbill.ingenico_payment_methods.created_date</code>.
 	 */
 	public java.sql.Timestamp getCreatedDate() {
-		return (java.sql.Timestamp) getValue(26);
+		return (java.sql.Timestamp) getValue(25);
 	}
 
 	/**
 	 * Setter for <code>killbill.ingenico_payment_methods.updated_date</code>.
 	 */
 	public void setUpdatedDate(java.sql.Timestamp value) {
-		setValue(27, value);
+		setValue(26, value);
 	}
 
 	/**
 	 * Getter for <code>killbill.ingenico_payment_methods.updated_date</code>.
 	 */
 	public java.sql.Timestamp getUpdatedDate() {
-		return (java.sql.Timestamp) getValue(27);
+		return (java.sql.Timestamp) getValue(26);
 	}
 
 	/**
 	 * Setter for <code>killbill.ingenico_payment_methods.kb_tenant_id</code>.
 	 */
 	public void setKbTenantId(java.lang.String value) {
-		setValue(28, value);
+		setValue(27, value);
 	}
 
 	/**
 	 * Getter for <code>killbill.ingenico_payment_methods.kb_tenant_id</code>.
 	 */
 	public java.lang.String getKbTenantId() {
-		return (java.lang.String) getValue(28);
+		return (java.lang.String) getValue(27);
 	}
 
 	// -------------------------------------------------------------------------
@@ -450,37 +436,36 @@ public class IngenicoPaymentMethodsRecord extends org.jooq.impl.UpdatableRecordI
 	/**
 	 * Create a detached, initialised IngenicoPaymentMethodsRecord
 	 */
-	public IngenicoPaymentMethodsRecord(org.jooq.types.UInteger recordId, java.lang.String kbAccountId, java.lang.String kbPaymentMethodId, java.lang.String token, java.lang.String ccAlias, java.lang.String ccFirstName, java.lang.String ccLastName, java.lang.String ccType, java.lang.String ccExpMonth, java.lang.String ccExpYear, java.lang.String ccNumber, java.lang.String ccLast_4, java.lang.String ccStartMonth, java.lang.String ccStartYear, java.lang.String ccIssueNumber, java.lang.String ccVerificationValue, java.lang.String ccTrackData, java.lang.String address1, java.lang.String address2, java.lang.String city, java.lang.String state, java.lang.String zip, java.lang.String country, java.lang.Byte isDefault, java.lang.Byte isDeleted, java.lang.String additionalData, java.sql.Timestamp createdDate, java.sql.Timestamp updatedDate, java.lang.String kbTenantId) {
+	public IngenicoPaymentMethodsRecord(org.jooq.types.UInteger recordId, java.lang.String kbAccountId, java.lang.String kbPaymentMethodId, java.lang.String token, java.lang.String ccFirstName, java.lang.String ccLastName, java.lang.String ccType, java.lang.String ccExpMonth, java.lang.String ccExpYear, java.lang.String ccNumber, java.lang.String ccLast_4, java.lang.String ccStartMonth, java.lang.String ccStartYear, java.lang.String ccIssueNumber, java.lang.String ccVerificationValue, java.lang.String ccTrackData, java.lang.String address1, java.lang.String address2, java.lang.String city, java.lang.String state, java.lang.String zip, java.lang.String country, java.lang.Byte isDefault, java.lang.Byte isDeleted, java.lang.String additionalData, java.sql.Timestamp createdDate, java.sql.Timestamp updatedDate, java.lang.String kbTenantId) {
 		super(org.killbill.billing.plugin.ingenico.dao.gen.tables.IngenicoPaymentMethods.INGENICO_PAYMENT_METHODS);
 
 		setValue(0, recordId);
 		setValue(1, kbAccountId);
 		setValue(2, kbPaymentMethodId);
 		setValue(3, token);
-		setValue(4, ccAlias);
-		setValue(5, ccFirstName);
-		setValue(6, ccLastName);
-		setValue(7, ccType);
-		setValue(8, ccExpMonth);
-		setValue(9, ccExpYear);
-		setValue(10, ccNumber);
-		setValue(11, ccLast_4);
-		setValue(12, ccStartMonth);
-		setValue(13, ccStartYear);
-		setValue(14, ccIssueNumber);
-		setValue(15, ccVerificationValue);
-		setValue(16, ccTrackData);
-		setValue(17, address1);
-		setValue(18, address2);
-		setValue(19, city);
-		setValue(20, state);
-		setValue(21, zip);
-		setValue(22, country);
-		setValue(23, isDefault);
-		setValue(24, isDeleted);
-		setValue(25, additionalData);
-		setValue(26, createdDate);
-		setValue(27, updatedDate);
-		setValue(28, kbTenantId);
+		setValue(4, ccFirstName);
+		setValue(5, ccLastName);
+		setValue(6, ccType);
+		setValue(7, ccExpMonth);
+		setValue(8, ccExpYear);
+		setValue(9, ccNumber);
+		setValue(10, ccLast_4);
+		setValue(11, ccStartMonth);
+		setValue(12, ccStartYear);
+		setValue(13, ccIssueNumber);
+		setValue(14, ccVerificationValue);
+		setValue(15, ccTrackData);
+		setValue(16, address1);
+		setValue(17, address2);
+		setValue(18, city);
+		setValue(19, state);
+		setValue(20, zip);
+		setValue(21, country);
+		setValue(22, isDefault);
+		setValue(23, isDeleted);
+		setValue(24, additionalData);
+		setValue(25, createdDate);
+		setValue(26, updatedDate);
+		setValue(27, kbTenantId);
 	}
 }
