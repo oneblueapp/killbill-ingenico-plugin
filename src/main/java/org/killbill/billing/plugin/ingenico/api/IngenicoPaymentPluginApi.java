@@ -223,7 +223,7 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
         final IngenicoClient client = ingenicoConfigurationHandler.getConfigurable(context.getTenantId());
 
         final Account account = getAccount(kbAccountId, context);
-        final Card paymentInfo = (Card) buildPaymentInfo(account, paymentMethodProps.getProperties(), context);
+        final PaymentInfo paymentInfo = buildPaymentInfo(account, paymentMethodProps.getProperties(), context);
 
         final UserData userData = toUserData(account, properties);
         final String token = client.tokenizeCreditCard(paymentInfo, userData);

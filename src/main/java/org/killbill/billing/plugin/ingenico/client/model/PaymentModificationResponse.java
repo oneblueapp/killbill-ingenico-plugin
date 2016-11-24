@@ -22,11 +22,15 @@ import java.util.Map;
 
 import javax.annotation.Nullable;
 
-import org.killbill.billing.plugin.ingenico.client.model.api.IngenicoCallErrorStatus;
+import org.killbill.billing.plugin.ingenico.client.payment.service.IngenicoCallErrorStatus;
+import org.killbill.billing.plugin.ingenico.client.payment.service.IngenicoCallResult;
 
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableMap;
 
-public class PaymentModificationResponse {
+import static org.killbill.billing.plugin.ingenico.client.model.PurchaseResult.INGENICO_CALL_ERROR_STATUS;
+
+public class PaymentModificationResponse<T> {
 
     private final IngenicoCallErrorStatus ingenicoCallErrorStatus;
     private final Map<Object, Object> additionalData;
@@ -37,22 +41,17 @@ public class PaymentModificationResponse {
         this(merchantReference, response, null, additionalData);
     }
 
-//    public PaymentModificationResponse(final String merchantReference, final AdyenCallResult<ModificationResult> adyenCallResult) {
-//        this(merchantReference,
-//             null,
-//             adyenCallResult.getResponseStatus().isPresent() ? adyenCallResult.getResponseStatus().get() : null,
-//             ImmutableMap.<Object, Object>of(ADYEN_CALL_ERROR_STATUS, adyenCallResult.getResponseStatus().isPresent() ? adyenCallResult.getResponseStatus().get().name() : "",
-//                                             EXCEPTION_CLASS, adyenCallResult.getExceptionClass().isPresent() ? adyenCallResult.getExceptionClass().get() : UNKNOWN,
-//                                             EXCEPTION_MESSAGE, adyenCallResult.getExceptionMessage().isPresent() ? adyenCallResult.getExceptionMessage().get() : UNKNOWN));
-//    }
+    public PaymentModificationResponse(final String merchantReference, final IngenicoCallResult<T> ingenicoCallResult, final Map<Object, Object> additionalData) {
+        this(merchantReference, null, ingenicoCallResult.getResponseStatus().orNull(), additionalData);
+    }
 
     private PaymentModificationResponse(final String merchantReference,
                                         final String response,
-                                        @Nullable final IngenicoCallErrorStatus ingenicoCallErrorStatus,
+                                        @Nullable final IngenicoCallErrorStatus adyenCallErrorStatus,
                                         final Map<Object, Object> additionalData) {
         this.merchantReference = merchantReference;
         this.response = response;
-        this.ingenicoCallErrorStatus = ingenicoCallErrorStatus;
+        this.ingenicoCallErrorStatus = adyenCallErrorStatus;
         this.additionalData = additionalData;
     }
 

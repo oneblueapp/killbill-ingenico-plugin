@@ -71,7 +71,6 @@ public class PaymentRequestBuilder extends RequestBuilder<CreatePaymentRequest> 
         setSplitSettlementData();
 
         request.setOrder(order);
-
         return request;
     }
 

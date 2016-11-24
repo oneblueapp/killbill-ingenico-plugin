@@ -19,19 +19,16 @@ package org.killbill.billing.plugin.ingenico.client.payment.converter;
 
 import org.killbill.billing.plugin.ingenico.client.model.PaymentInfo;
 
-import com.google.common.base.Strings;
 import com.ingenico.connect.gateway.sdk.java.domain.definitions.Address;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.CreatePaymentRequest;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.Customer;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.Order;
+import com.ingenico.connect.gateway.sdk.java.domain.token.CreateTokenRequest;
+import com.ingenico.connect.gateway.sdk.java.domain.token.definitions.CustomerToken;
 
 public class PaymentInfoConverter<T extends PaymentInfo> {
 
-    final private Order order;
-
-    public PaymentInfoConverter() {
-        order = new Order();
-    }
+    private Order order;
 
     /**
      * @param paymentInfo to convert
@@ -42,20 +39,26 @@ public class PaymentInfoConverter<T extends PaymentInfo> {
     }
 
     /**
-     * Convert a PaymentInfo Object into an Adyen PaymentRequest
+     * Convert a PaymentInfo Object into an Ingenico CreatePaymentRequest
      */
     public CreatePaymentRequest convertPaymentInfoToPaymentRequest(final T paymentInfo) {
-        return initializePaymentInfo(paymentInfo);
-    }
-
-    private CreatePaymentRequest initializePaymentInfo(final PaymentInfo paymentInfo) {
         final CreatePaymentRequest paymentRequest = new CreatePaymentRequest();
+        order = new Order();
 
         setInstallments(paymentInfo, paymentRequest);
-        setBillingAddress(paymentInfo, paymentRequest);
-        setAcquirer(paymentInfo, paymentRequest);
+        setOrderBillingAddress(paymentInfo, paymentRequest);
         paymentRequest.setOrder(order);
+
         return paymentRequest;
+    }
+
+    /**
+     * Convert a PaymentInfo Object into an Ingenico CreateTokenRequest
+     */
+    public CreateTokenRequest convertPaymentInfoToCreateTokenRequest(final T paymentInfo) {
+        final CreateTokenRequest createTokenRequest = new CreateTokenRequest();
+
+        return createTokenRequest;
     }
 
     private void setInstallments(final PaymentInfo paymentInfo, final CreatePaymentRequest paymentRequest) {
@@ -66,7 +69,7 @@ public class PaymentInfoConverter<T extends PaymentInfo> {
 //        }
     }
 
-    private void setBillingAddress(final PaymentInfo paymentInfo, final CreatePaymentRequest paymentRequest) {
+    private Address createBillingAddress(final PaymentInfo paymentInfo) {
         final Address address = new Address();
         address.setStreet(paymentInfo.getStreet());
         address.setHouseNumber(paymentInfo.getHouseNumberOrName());
@@ -76,28 +79,14 @@ public class PaymentInfoConverter<T extends PaymentInfo> {
 
         final String adjustedCountry = paymentInfo.getCountry();
         address.setCountryCode(adjustedCountry);
+        return address;
+    }
+
+    private void setOrderBillingAddress(PaymentInfo paymentInfo, final CreatePaymentRequest paymentRequest) {
+        Address address = createBillingAddress(paymentInfo);
         Customer customer = order.getCustomer() != null ? order.getCustomer() : new Customer();
         customer.setBillingAddress(address);
         order.setCustomer(customer);
         paymentRequest.setOrder(order);
-    }
-
-    private void setAcquirer(final PaymentInfo paymentInfo, final CreatePaymentRequest paymentRequest) {
-//        final String acquirerName = paymentInfo.getAcquirer();
-//        if (acquirerName != null) {
-//            final AnyType2AnyTypeMap.Entry acquirerCode = new AnyType2AnyTypeMap.Entry();
-//            acquirerCode.setKey("acquirerCode");
-//            acquirerCode.setValue(acquirerName);
-//            paymentRequest.getAdditionalData().getEntry().add(acquirerCode);
-//
-//            // If the acquirer has an authorisationMid set it to the request too
-//            final String mid = paymentInfo.getAcquirerMID();
-//            if (!Strings.isNullOrEmpty(mid)) {
-//                final AnyType2AnyTypeMap.Entry authorisationMid = new AnyType2AnyTypeMap.Entry();
-//                authorisationMid.setKey("authorisationMid");
-//                authorisationMid.setValue(mid);
-//                paymentRequest.getAdditionalData().getEntry().add(authorisationMid);
-//            }
-//        }
     }
 }

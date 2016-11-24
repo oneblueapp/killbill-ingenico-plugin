@@ -23,14 +23,13 @@ import java.util.Map;
 
 public enum PaymentServiceProviderResult {
 
-    INITIALISED("Initialised"), // be careful with this state, it's only here to enable orders from OfflineFundsTransfer to be able to expire in every case after 7 days
-    AUTHORISED("Authorised"),
-    REDIRECT_SHOPPER("RedirectShopper"), // authorize return code when using 3D-Secure
-    RECEIVED(new String[]{"Received", "Pending", "[capture-received]", "[cancel-received]", "[cancelOrRefund-received]", "[refund-received]", "[all-details-successfully-disabled]", "[detail-successfully-disabled]"}), // direct debit, ideal payment response
-    REFUSED("Refused"),
-    PENDING("Pending"),
+    AUTHORISED(new String[] {"ACCOUNT_VERIFIED", "CAPTURED", "CANCELLED", "REFUNDED", "CHARGEBACKED", "REVERSED", "PAID"}),
+    REDIRECT_SHOPPER("REDIRECTED"), // authorize return code when using 3D-Secure
+    RECEIVED(new String[]{"CREATED", "AUTHORIZATION_REQUESTED", "PENDING_PAYMENT", "CAPTURE_REQUESTED"}), // direct debit, ideal payment response
+    REFUSED(new String[] {"REJECTED_CAPTURE", "REJECTED"}),
+    PENDING(new String[]{"", "PENDING_APPROVAL", "PENDING_FRAUD_APPROVAL"}),
     ERROR(new String[]{"Error", "[error]"}),
-    CANCELLED("Cancelled");
+    CANCELLED("");
 
     private static final Map<String, PaymentServiceProviderResult> REVERSE_LOOKUP = new HashMap<String, PaymentServiceProviderResult>();
 
@@ -44,11 +43,11 @@ public enum PaymentServiceProviderResult {
 
     private final String[] responses;
 
-    private PaymentServiceProviderResult(final String response) {
+    PaymentServiceProviderResult(final String response) {
         this(new String[]{response});
     }
 
-    private PaymentServiceProviderResult(final String[] responses) {
+    PaymentServiceProviderResult(final String[] responses) {
         this.responses = responses;
     }
 

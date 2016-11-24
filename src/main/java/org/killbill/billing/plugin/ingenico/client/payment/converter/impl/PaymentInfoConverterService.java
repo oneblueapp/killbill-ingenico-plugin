@@ -25,6 +25,7 @@ import org.killbill.billing.plugin.ingenico.client.payment.converter.PaymentInfo
 
 import com.google.common.collect.ImmutableList;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.CreatePaymentRequest;
+import com.ingenico.connect.gateway.sdk.java.domain.token.CreateTokenRequest;
 
 public class PaymentInfoConverterService implements PaymentInfoConverterManagement<PaymentInfo> {
 
@@ -32,7 +33,7 @@ public class PaymentInfoConverterService implements PaymentInfoConverterManageme
 
     public PaymentInfoConverterService() {
         this.paymentInfoConverters = ImmutableList.<PaymentInfoConverter<? extends PaymentInfo>>of(new CreditCardConverter(),
-                                                                                                   // new SepaDirectDebitConverter(),
+                                                                                                   new SepaDirectDebitConverter(),
                                                                                                    new RecurringConverter(),
                                                                                                    // Default fallback
                                                                                                    new PaymentInfoConverter<PaymentInfo>());
@@ -43,6 +44,17 @@ public class PaymentInfoConverterService implements PaymentInfoConverterManageme
         for (final PaymentInfoConverter pic : paymentInfoConverters) {
             if (pic.supportsPaymentInfo(paymentInfo)) {
                 return pic.convertPaymentInfoToPaymentRequest(paymentInfo);
+            }
+        }
+        // Should never happen
+        throw new IllegalArgumentException("No PaymentInfoConverter for " + paymentInfo + " found.");
+    }
+
+    @Override
+    public CreateTokenRequest convertPaymentInfoToCreateTokenRequest(final PaymentInfo paymentInfo) {
+        for (final PaymentInfoConverter pic : paymentInfoConverters) {
+            if (pic.supportsPaymentInfo(paymentInfo)) {
+                return pic.convertPaymentInfoToCreateTokenRequest(paymentInfo);
             }
         }
         // Should never happen

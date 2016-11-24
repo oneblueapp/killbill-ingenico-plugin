@@ -18,6 +18,7 @@
 package org.killbill.billing.plugin.ingenico.client.model;
 
 import org.joda.time.DateTime;
+import org.joda.time.chrono.StrictChronology;
 
 import java.text.SimpleDateFormat;
 import java.util.Locale;
@@ -34,6 +35,7 @@ public class UserData {
     private String vatNumber;
     private DateTime dateOfBirth;
     private String shopperIP;
+    private String companyName;
 
     public String getShopperEmail() {
         return shopperEmail;
@@ -119,6 +121,14 @@ public class UserData {
 
     public void setShopperIP(final String shopperIP) {
         this.shopperIP = shopperIP;
+    }
+
+    public String getCompanyName() {
+        return companyName;
+    }
+
+    public void setCompanyName(final String companyName) {
+        this.companyName = companyName;
     }
 
     @Override

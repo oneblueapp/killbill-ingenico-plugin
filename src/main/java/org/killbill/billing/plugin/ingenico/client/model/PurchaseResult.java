@@ -18,8 +18,11 @@
 package org.killbill.billing.plugin.ingenico.client.model;
 
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableMap;
+import com.ingenico.connect.gateway.sdk.java.domain.payment.CreatePaymentResponse;
 
-import org.killbill.billing.plugin.ingenico.client.model.api.IngenicoCallErrorStatus;
+import org.killbill.billing.plugin.ingenico.client.payment.service.IngenicoCallErrorStatus;
+import org.killbill.billing.plugin.ingenico.client.payment.service.IngenicoCallResult;
 
 import javax.annotation.Nullable;
 
@@ -27,16 +30,16 @@ import java.util.Map;
 
 public class PurchaseResult {
 
-    public static final String ADYEN_CALL_ERROR_STATUS = "adyenCallErrorStatus";
+    public static final String INGENICO_CALL_ERROR_STATUS = "ingenicoCallErrorStatus";
     public static final String EXCEPTION_CLASS = "exceptionClass";
     public static final String EXCEPTION_MESSAGE = "exceptionMessage";
     public static final String UNKNOWN = "";
 
-    private final String merchantId;
+    private final Optional<PaymentServiceProviderResult> result;
     private final String transactionId;
     private final String status;
     private final String paymentMethod;
-    private String reference;
+    private final String paymentTransactionExternalKey;
     private final String merchantReference;
     private final String authorisationCode;
     private final Integer productId;
@@ -46,12 +49,42 @@ public class PurchaseResult {
     private final IngenicoCallErrorStatus ingenicoCallErrorStatus;
     private final Map<String, String> additionalData;
 
-    public PurchaseResult(final String merchantId, final String transactionId, final String status, final String paymentMethod, final String merchantReference, final String authorisationCode, final Integer paymentProductId, final String avsResult, final String cvvResult, final String fraudServiceResult, final Map<String, String> additionalData) {
-        this(merchantId, transactionId, status, paymentMethod, merchantReference, authorisationCode, paymentProductId, avsResult, cvvResult, fraudServiceResult, null, additionalData);
+    public PurchaseResult(final PaymentServiceProviderResult result,
+                          final String transactionId,
+                          final String status,
+                          final String paymentMethod,
+                          final String merchantReference,
+                          final String authorisationCode,
+                          final Integer paymentProductId,
+                          final String avsResult,
+                          final String cvvResult,
+                          final String fraudServiceResult,
+                          final String paymentTransactionExternalKey,
+                          final Map<String, String> additionalData) {
+        this(Optional.of(result), transactionId, status, paymentMethod, merchantReference, authorisationCode, paymentProductId, avsResult, cvvResult, fraudServiceResult, paymentTransactionExternalKey, null, additionalData);
+    }
+
+    public PurchaseResult(final String paymentTransactionExternalKey,
+                          final IngenicoCallResult<CreatePaymentResponse> ingenicoCallResult) {
+        this(Optional.<PaymentServiceProviderResult>absent(),
+             null,
+             null,
+             null,
+             null,
+             null,
+             null,
+             null,
+             null,
+             null,
+             paymentTransactionExternalKey,
+             ingenicoCallResult.getResponseStatus().isPresent() ? ingenicoCallResult.getResponseStatus().get() : null,
+             ImmutableMap.<String, String>of(INGENICO_CALL_ERROR_STATUS, ingenicoCallResult.getResponseStatus().isPresent() ? ingenicoCallResult.getResponseStatus().get().name() : UNKNOWN,
+                                             EXCEPTION_CLASS, ingenicoCallResult.getExceptionClass().isPresent() ? ingenicoCallResult.getExceptionClass().get() : UNKNOWN,
+                                             EXCEPTION_MESSAGE, ingenicoCallResult.getExceptionMessage().isPresent() ? ingenicoCallResult.getExceptionMessage().get() : UNKNOWN));
     }
 
 
-    public PurchaseResult(final String merchantId,
+    public PurchaseResult(final Optional<PaymentServiceProviderResult> result,
                           final String transactionId,
                           final String status,
                           final String paymentMethod,
@@ -61,10 +94,11 @@ public class PurchaseResult {
                           final String avsResult,
                           final String cvvResult,
                           final String fraudServiceResult,
+                          final String paymentTransactionExternalKey,
                           @Nullable final IngenicoCallErrorStatus ingenicoCallErrorStatus,
                           final Map<String, String> additionalData) {
         this.ingenicoCallErrorStatus = ingenicoCallErrorStatus;
-        this.merchantId = merchantId;
+        this.result = result;
         this.transactionId = transactionId;
         this.productId = productId;
         this.status = status;
@@ -74,15 +108,8 @@ public class PurchaseResult {
         this.avsResult = avsResult;
         this.cvvResult = cvvResult;
         this.fraudServiceResult = fraudServiceResult;
+        this.paymentTransactionExternalKey = paymentTransactionExternalKey;
         this.additionalData = additionalData;
-    }
-
-    /**
-     * True if we received a well formed soap response from adyen.
-     */
-    @SuppressWarnings("unused")
-    public boolean isTechnicallySuccessful() {
-        return !getIngenicoCallErrorStatus().isPresent();
     }
 
     public Optional<IngenicoCallErrorStatus> getIngenicoCallErrorStatus() {
@@ -179,10 +206,6 @@ public class PurchaseResult {
         return result;
     }
 
-    public String getMerchantId() {
-        return merchantId;
-    }
-
     public String getPgTransactionId() {
         return transactionId;
     }
@@ -193,10 +216,6 @@ public class PurchaseResult {
 
     public String getPgTransactionMethod() {
         return paymentMethod;
-    }
-
-    public String getReference() {
-        return reference;
     }
 
     public String getPgMerchantReference() {
@@ -229,6 +248,10 @@ public class PurchaseResult {
 
     public String getPgErrorMessage() {
         return "";
+    }
+
+    public String getPaymentTransactionExternalKey() {
+        return paymentTransactionExternalKey;
     }
 
     public Map<String, String> getAdditionalData() {

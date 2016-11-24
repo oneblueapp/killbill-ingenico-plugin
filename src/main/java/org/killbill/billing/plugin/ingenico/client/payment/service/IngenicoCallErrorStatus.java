@@ -15,17 +15,27 @@
  * under the License.
  */
 
-package org.killbill.billing.plugin.ingenico.client.payment.converter;
+package org.killbill.billing.plugin.ingenico.client.payment.service;
 
-
-import org.killbill.billing.plugin.ingenico.client.model.PaymentInfo;
-
-import com.ingenico.connect.gateway.sdk.java.domain.payment.CreatePaymentRequest;
-import com.ingenico.connect.gateway.sdk.java.domain.token.CreateTokenRequest;
-
-public interface PaymentInfoConverterManagement<T extends PaymentInfo> {
-
-    CreatePaymentRequest convertPaymentInfoToPaymentRequest(final T paymentInfo);
-
-    CreateTokenRequest convertPaymentInfoToCreateTokenRequest(PaymentInfo paymentInfo);
+public enum IngenicoCallErrorStatus {
+    /**
+     * Request never reached Ingenico (e.g. connection failure or unknown host).
+     */
+    REQUEST_NOT_SEND,
+    /**
+     * Ingenicos response indicates an invalid request sent by us (e.g. a non user field like pspRef was empty).
+     */
+    RESPONSE_ABOUT_INVALID_REQUEST,
+    /**
+     * We never received a response from Ingenico.
+     */
+    RESPONSE_NOT_RECEIVED,
+    /**
+     * Received response is not parsable.
+     */
+    RESPONSE_INVALID,
+    /**
+     * We don't know ;).
+     */
+    UNKNOWN_FAILURE
 }

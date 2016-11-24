@@ -21,8 +21,16 @@ import org.killbill.billing.plugin.ingenico.client.model.PaymentInfo;
 import org.killbill.billing.plugin.ingenico.client.model.paymentinfo.Card;
 import org.killbill.billing.plugin.ingenico.client.payment.converter.PaymentInfoConverter;
 
+import com.ingenico.connect.gateway.sdk.java.domain.definitions.Address;
+import com.ingenico.connect.gateway.sdk.java.domain.definitions.CardWithoutCvv;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.CreatePaymentRequest;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.CardPaymentMethodSpecificInput;
+import com.ingenico.connect.gateway.sdk.java.domain.token.CreateTokenRequest;
+import com.ingenico.connect.gateway.sdk.java.domain.token.definitions.CustomerToken;
+import com.ingenico.connect.gateway.sdk.java.domain.token.definitions.TokenCard;
+import com.ingenico.connect.gateway.sdk.java.domain.token.definitions.TokenCardData;
+import com.ingenico.connect.gateway.sdk.java.domain.token.definitions.TokenNonSepaDirectDebit;
+import com.ingenico.connect.gateway.sdk.java.domain.token.definitions.TokenSepaDirectDebit;
 
 public class CreditCardConverter extends PaymentInfoConverter<Card> {
 
@@ -51,6 +59,29 @@ public class CreditCardConverter extends PaymentInfoConverter<Card> {
 
         final CreatePaymentRequest ingenicoRequest = super.convertPaymentInfoToPaymentRequest(paymentInfo);
         ingenicoRequest.setCardPaymentMethodSpecificInput(cardPaymentMethodSpecificInput);
+
+        return ingenicoRequest;
+    }
+
+    @Override
+    public CreateTokenRequest convertPaymentInfoToCreateTokenRequest(final Card paymentInfo) {
+        final CreateTokenRequest ingenicoRequest = super.convertPaymentInfoToCreateTokenRequest(paymentInfo);
+
+        if (paymentInfo.getNumber() != null) {
+            CardWithoutCvv cardWithoutCvv = new CardWithoutCvv();
+            cardWithoutCvv.setCardNumber(paymentInfo.getNumber());
+            cardWithoutCvv.setCardholderName(paymentInfo.getHolderName());
+            cardWithoutCvv.setExpiryDate(paymentInfo.getExpiryDate());
+
+            TokenCard tokenCard = new TokenCard();
+            TokenCardData tokenCardData = new TokenCardData();
+            tokenCardData.setCardWithoutCvv(cardWithoutCvv);
+            tokenCard.setData(tokenCardData);
+            ingenicoRequest.setCard(tokenCard);
+        }
+
+
+        ingenicoRequest.setPaymentProductId(paymentInfo.getPaymentProductId());
 
         return ingenicoRequest;
     }

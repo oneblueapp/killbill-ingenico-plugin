@@ -1,8 +1,10 @@
 package org.killbill.billing.plugin.ingenico.dao;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.annotation.Nullable;
@@ -23,6 +25,7 @@ import org.killbill.billing.plugin.ingenico.dao.gen.tables.records.IngenicoRespo
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableMap;
 
 import static org.killbill.billing.plugin.ingenico.dao.gen.tables.IngenicoPaymentMethods.INGENICO_PAYMENT_METHODS;
 import static org.killbill.billing.plugin.ingenico.dao.gen.tables.IngenicoResponses.INGENICO_RESPONSES;
@@ -79,7 +82,6 @@ public class IngenicoDao extends PluginPaymentDao<IngenicoResponsesRecord, Ingen
                                         INGENICO_RESPONSES.TRANSACTION_TYPE,
                                         INGENICO_RESPONSES.AMOUNT,
                                         INGENICO_RESPONSES.CURRENCY,
-                                        INGENICO_RESPONSES.PG_MERCHANT_ID,
                                         INGENICO_RESPONSES.PG_TRANSACTION_ID,
                                         INGENICO_RESPONSES.PG_STATUS,
                                         INGENICO_RESPONSES.PG_TRANSACTION_METHOD,
@@ -100,11 +102,10 @@ public class IngenicoDao extends PluginPaymentDao<IngenicoResponsesRecord, Ingen
                                         transactionType.toString(),
                                         amount,
                                         currency.toString(),
-                                        result.getMerchantId(),
                                         result.getPgTransactionId(),
                                         result.getPgStatus(),
                                         result.getPgTransactionMethod(),
-                                        result.getReference(),
+                                        result.getPgMerchantReference(),
                                         result.getPgMerchantReference(),
                                         result.getPgAuthorizationCode(),
                                         result.getPgProductiId(),
@@ -185,6 +186,18 @@ public class IngenicoDao extends PluginPaymentDao<IngenicoResponsesRecord, Ingen
 //                        return null;
 //                    }
 //                });
+    }
+
+    public static Map fromAdditionalData(@Nullable final String additionalData) {
+        if (additionalData == null) {
+            return ImmutableMap.of();
+        }
+
+        try {
+            return objectMapper.readValue(additionalData, Map.class);
+        } catch (final IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

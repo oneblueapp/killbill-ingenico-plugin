@@ -23,11 +23,15 @@ import javax.annotation.Nullable;
 
 import org.killbill.billing.plugin.ingenico.client.IngenicoConfigProperties;
 import org.killbill.billing.plugin.ingenico.client.model.PaymentData;
+import org.killbill.billing.plugin.ingenico.client.model.PaymentInfo;
 import org.killbill.billing.plugin.ingenico.client.model.SplitSettlementData;
 import org.killbill.billing.plugin.ingenico.client.model.UserData;
+import org.killbill.billing.plugin.ingenico.client.model.paymentinfo.Card;
 import org.killbill.billing.plugin.ingenico.client.payment.converter.PaymentInfoConverterManagement;
 
+import com.ingenico.connect.gateway.sdk.java.domain.payment.ApprovePaymentRequest;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.CreatePaymentRequest;
+import com.ingenico.connect.gateway.sdk.java.domain.token.CreateTokenRequest;
 
 public class IngenicoRequestFactory {
 
@@ -50,11 +54,17 @@ public class IngenicoRequestFactory {
 //        return paymentRequest3DBuilder.build();
 //    }
 //
-//    public ModificationRequest createModificationRequest(final String merchantAccount, final PaymentData paymentData, final String pspReference, @Nullable final SplitSettlementData splitSettlementData) {
+    public ApprovePaymentRequest approvePaymentRequest(final PaymentData paymentData, final String paymentId, @Nullable final SplitSettlementData splitSettlementData) {
 //        final ModificationRequestBuilder modificationRequestBuilder = new ModificationRequestBuilder(merchantAccount, paymentData, pspReference, splitSettlementData);
 //        return modificationRequestBuilder.build();
-//    }
-//
+        return null;
+    }
+
+    public CreateTokenRequest createTokenRequest(final PaymentInfo paymentInfo, final UserData userData) {
+        final CreateTokenRequestBuilder createTokenRequestBuilder = new CreateTokenRequestBuilder(paymentInfo, userData, null, paymentInfoConverterManagement);
+        return createTokenRequestBuilder.build();
+    }
+    //
 //    public Map<String, String> createHppRequest(final String merchantAccount, final PaymentData paymentData, final UserData userData, @Nullable final SplitSettlementData splitSettlementData) throws SignatureGenerationException {
 //        final HPPRequestBuilder builder = new HPPRequestBuilder(merchantAccount,
 //                                                                paymentData,
