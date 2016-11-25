@@ -47,6 +47,8 @@ import com.ingenico.connect.gateway.sdk.java.domain.payment.CancelPaymentRespons
 import com.ingenico.connect.gateway.sdk.java.domain.payment.CreatePaymentRequest;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.CreatePaymentResponse;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.PaymentApprovalResponse;
+import com.ingenico.connect.gateway.sdk.java.domain.payment.PaymentResponse;
+import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.Payment;
 import com.ingenico.connect.gateway.sdk.java.domain.refund.RefundRequest;
 import com.ingenico.connect.gateway.sdk.java.domain.refund.RefundResponse;
 import com.ingenico.connect.gateway.sdk.java.domain.token.CreateTokenRequest;
@@ -78,7 +80,25 @@ public class IngenicoPaymentRequestSender implements Closeable {
         });
     }
 
-    public IngenicoCallResult<RefundResponse> refund(final String merchantAccount, final String paymentId, final RefundRequest modificationRequest) {
+    public IngenicoCallResult<PaymentApprovalResponse> approve(final  String paymentId, final ApprovePaymentRequest modificationRequest) {
+        return callIngenico(new IngenicoCall<MerchantClient, PaymentApprovalResponse>() {
+            @Override
+            public PaymentApprovalResponse apply(final MerchantClient client) throws ApiException {
+                return client.payments().approve(paymentId, modificationRequest);
+            }
+        });
+    }
+
+    public IngenicoCallResult<PaymentResponse> get(final String paymentId) {
+        return callIngenico(new IngenicoCall<MerchantClient, PaymentResponse>() {
+            @Override
+            public PaymentResponse apply(final MerchantClient client) throws ApiException {
+                return client.payments().get(paymentId);
+            }
+        });
+    }
+
+    public IngenicoCallResult<RefundResponse> refund(final String paymentId, final RefundRequest modificationRequest) {
         return callIngenico(new IngenicoCall<MerchantClient, RefundResponse>() {
             @Override
             public RefundResponse apply(final MerchantClient client) throws ApiException {
@@ -87,20 +107,11 @@ public class IngenicoPaymentRequestSender implements Closeable {
         });
     }
 
-    public IngenicoCallResult<CancelPaymentResponse> cancel(final String merchantAccount, final  String paymentId) {
+    public IngenicoCallResult<CancelPaymentResponse> cancel(final  String paymentId) {
         return callIngenico(new IngenicoCall<MerchantClient, CancelPaymentResponse>() {
             @Override
             public CancelPaymentResponse apply(final MerchantClient client) throws ApiException {
                 return client.payments().cancel(paymentId);
-            }
-        });
-    }
-
-    public IngenicoCallResult<PaymentApprovalResponse> approve(final  String paymentId, final ApprovePaymentRequest modificationRequest) {
-        return callIngenico(new IngenicoCall<MerchantClient, PaymentApprovalResponse>() {
-            @Override
-            public PaymentApprovalResponse apply(final MerchantClient client) throws ApiException {
-                return client.payments().approve(paymentId, modificationRequest);
             }
         });
     }

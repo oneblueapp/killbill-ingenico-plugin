@@ -270,11 +270,7 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
                                              public PurchaseResult execute(final PaymentData paymentData, final UserData userData, final SplitSettlementData splitSettlementData) {
                                                  final IngenicoClient ingenicoClient = ingenicoConfigurationHandler.getConfigurable(context.getTenantId());
 
-                                                 if (transactionType == TransactionType.CREDIT) {
-                                                     return ingenicoClient.credit(paymentData, splitSettlementData);
-                                                 } else {
-                                                     return ingenicoClient.create(paymentData, userData, splitSettlementData);
-                                                 }
+                                                 return ingenicoClient.create(paymentData, userData, splitSettlementData);
                                              }
                                          },
                                          kbAccountId,

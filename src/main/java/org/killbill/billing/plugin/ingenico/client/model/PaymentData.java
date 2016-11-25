@@ -23,19 +23,19 @@ import java.math.BigDecimal;
 
 public class PaymentData<I extends PaymentInfo> {
 
-    private final Long amount;
+    private final BigDecimal amount;
     private final Currency currency;
     private final String paymentTransactionExternalKey;
     private final I paymentInfo;
 
     public PaymentData(final BigDecimal amount, final Currency currency, final String paymentTransactionExternalKey, final I paymentInfo) {
-        this.amount = amount.setScale(0, BigDecimal.ROUND_UP).longValueExact();
+        this.amount = amount;
         this.currency = currency;
         this.paymentTransactionExternalKey = paymentTransactionExternalKey;
         this.paymentInfo = paymentInfo;
     }
 
-    public Long getAmount() {
+    public BigDecimal getAmount() {
         return amount;
     }
 

@@ -55,9 +55,8 @@ public class IngenicoRequestFactory {
 //    }
 //
     public ApprovePaymentRequest approvePaymentRequest(final PaymentData paymentData, final String paymentId, @Nullable final SplitSettlementData splitSettlementData) {
-//        final ModificationRequestBuilder modificationRequestBuilder = new ModificationRequestBuilder(merchantAccount, paymentData, pspReference, splitSettlementData);
-//        return modificationRequestBuilder.build();
-        return null;
+        final ModificationRequestBuilder modificationRequestBuilder = new ModificationRequestBuilder(paymentData, splitSettlementData);
+        return modificationRequestBuilder.build();
     }
 
     public CreateTokenRequest createTokenRequest(final PaymentInfo paymentInfo, final UserData userData) {

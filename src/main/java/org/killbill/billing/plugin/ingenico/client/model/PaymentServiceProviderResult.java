@@ -23,11 +23,11 @@ import java.util.Map;
 
 public enum PaymentServiceProviderResult {
 
-    AUTHORISED(new String[] {"ACCOUNT_VERIFIED", "CAPTURED", "CANCELLED", "REFUNDED", "CHARGEBACKED", "REVERSED", "PAID"}),
+    AUTHORISED(new String[] {"PENDING_APPROVAL", "PENDING_PAYMENT", "ACCOUNT_VERIFIED", "CAPTURED", "CANCELLED", "REFUNDED", "CHARGEBACKED", "REVERSED", "PAID"}),
     REDIRECT_SHOPPER("REDIRECTED"), // authorize return code when using 3D-Secure
-    RECEIVED(new String[]{"CREATED", "AUTHORIZATION_REQUESTED", "PENDING_PAYMENT", "CAPTURE_REQUESTED"}), // direct debit, ideal payment response
+    RECEIVED(new String[]{"CREATED", "AUTHORIZATION_REQUESTED", "CAPTURE_REQUESTED"}), // direct debit, ideal payment response
     REFUSED(new String[] {"REJECTED_CAPTURE", "REJECTED"}),
-    PENDING(new String[]{"", "PENDING_APPROVAL", "PENDING_FRAUD_APPROVAL"}),
+    PENDING(new String[]{"", "PENDING_FRAUD_APPROVAL"}),
     ERROR(new String[]{"Error", "[error]"}),
     CANCELLED("");
 
