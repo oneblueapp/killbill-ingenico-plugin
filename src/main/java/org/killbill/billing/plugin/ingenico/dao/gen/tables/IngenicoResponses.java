@@ -16,7 +16,7 @@ package org.killbill.billing.plugin.ingenico.dao.gen.tables;
 @java.lang.SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class IngenicoResponses extends org.jooq.impl.TableImpl<org.killbill.billing.plugin.ingenico.dao.gen.tables.records.IngenicoResponsesRecord> {
 
-	private static final long serialVersionUID = 802096820;
+	private static final long serialVersionUID = 714903209;
 
 	/**
 	 * The reference instance of <code>killbill.ingenico_responses</code>
@@ -67,69 +67,59 @@ public class IngenicoResponses extends org.jooq.impl.TableImpl<org.killbill.bill
 	public final org.jooq.TableField<org.killbill.billing.plugin.ingenico.dao.gen.tables.records.IngenicoResponsesRecord, java.lang.String> CURRENCY = createField("currency", org.jooq.impl.SQLDataType.CHAR.length(3), this, "");
 
 	/**
-	 * The column <code>killbill.ingenico_responses.pg_merchant_id</code>.
+	 * The column <code>killbill.ingenico_responses.ingenico_payment_id</code>.
 	 */
-	public final org.jooq.TableField<org.killbill.billing.plugin.ingenico.dao.gen.tables.records.IngenicoResponsesRecord, java.lang.String> PG_MERCHANT_ID = createField("pg_merchant_id", org.jooq.impl.SQLDataType.VARCHAR.length(255).nullable(false), this, "");
+	public final org.jooq.TableField<org.killbill.billing.plugin.ingenico.dao.gen.tables.records.IngenicoResponsesRecord, java.lang.String> INGENICO_PAYMENT_ID = createField("ingenico_payment_id", org.jooq.impl.SQLDataType.VARCHAR.length(50), this, "");
 
 	/**
-	 * The column <code>killbill.ingenico_responses.pg_transaction_id</code>.
+	 * The column <code>killbill.ingenico_responses.ingenico_status</code>.
 	 */
-	public final org.jooq.TableField<org.killbill.billing.plugin.ingenico.dao.gen.tables.records.IngenicoResponsesRecord, java.lang.String> PG_TRANSACTION_ID = createField("pg_transaction_id", org.jooq.impl.SQLDataType.VARCHAR.length(255).nullable(false), this, "");
+	public final org.jooq.TableField<org.killbill.billing.plugin.ingenico.dao.gen.tables.records.IngenicoResponsesRecord, java.lang.String> INGENICO_STATUS = createField("ingenico_status", org.jooq.impl.SQLDataType.VARCHAR.length(50), this, "");
 
 	/**
-	 * The column <code>killbill.ingenico_responses.pg_status</code>.
+	 * The column <code>killbill.ingenico_responses.ingenico_payment_reference</code>.
 	 */
-	public final org.jooq.TableField<org.killbill.billing.plugin.ingenico.dao.gen.tables.records.IngenicoResponsesRecord, java.lang.String> PG_STATUS = createField("pg_status", org.jooq.impl.SQLDataType.VARCHAR.length(255).nullable(false), this, "");
+	public final org.jooq.TableField<org.killbill.billing.plugin.ingenico.dao.gen.tables.records.IngenicoResponsesRecord, java.lang.String> INGENICO_PAYMENT_REFERENCE = createField("ingenico_payment_reference", org.jooq.impl.SQLDataType.VARCHAR.length(64), this, "");
 
 	/**
-	 * The column <code>killbill.ingenico_responses.pg_transaction_method</code>.
+	 * The column <code>killbill.ingenico_responses.ingenico_merchant_reference</code>.
 	 */
-	public final org.jooq.TableField<org.killbill.billing.plugin.ingenico.dao.gen.tables.records.IngenicoResponsesRecord, java.lang.String> PG_TRANSACTION_METHOD = createField("pg_transaction_method", org.jooq.impl.SQLDataType.VARCHAR.length(255), this, "");
+	public final org.jooq.TableField<org.killbill.billing.plugin.ingenico.dao.gen.tables.records.IngenicoResponsesRecord, java.lang.String> INGENICO_MERCHANT_REFERENCE = createField("ingenico_merchant_reference", org.jooq.impl.SQLDataType.VARCHAR.length(64), this, "");
 
 	/**
-	 * The column <code>killbill.ingenico_responses.pg_merchant_reference</code>.
+	 * The column <code>killbill.ingenico_responses.ingenico_authorization_code</code>.
 	 */
-	public final org.jooq.TableField<org.killbill.billing.plugin.ingenico.dao.gen.tables.records.IngenicoResponsesRecord, java.lang.String> PG_MERCHANT_REFERENCE = createField("pg_merchant_reference", org.jooq.impl.SQLDataType.VARCHAR.length(64), this, "");
+	public final org.jooq.TableField<org.killbill.billing.plugin.ingenico.dao.gen.tables.records.IngenicoResponsesRecord, java.lang.String> INGENICO_AUTHORIZATION_CODE = createField("ingenico_authorization_code", org.jooq.impl.SQLDataType.VARCHAR.length(255), this, "");
 
 	/**
-	 * The column <code>killbill.ingenico_responses.pg_authorization_code</code>.
+	 * The column <code>killbill.ingenico_responses.ingenico_error_code</code>.
 	 */
-	public final org.jooq.TableField<org.killbill.billing.plugin.ingenico.dao.gen.tables.records.IngenicoResponsesRecord, java.lang.String> PG_AUTHORIZATION_CODE = createField("pg_authorization_code", org.jooq.impl.SQLDataType.VARCHAR.length(255), this, "");
+	public final org.jooq.TableField<org.killbill.billing.plugin.ingenico.dao.gen.tables.records.IngenicoResponsesRecord, java.lang.String> INGENICO_ERROR_CODE = createField("ingenico_error_code", org.jooq.impl.SQLDataType.VARCHAR.length(64), this, "");
 
 	/**
-	 * The column <code>killbill.ingenico_responses.pg_product_id</code>.
+	 * The column <code>killbill.ingenico_responses.ingenico_error_message</code>.
 	 */
-	public final org.jooq.TableField<org.killbill.billing.plugin.ingenico.dao.gen.tables.records.IngenicoResponsesRecord, java.lang.Integer> PG_PRODUCT_ID = createField("pg_product_id", org.jooq.impl.SQLDataType.INTEGER, this, "");
+	public final org.jooq.TableField<org.killbill.billing.plugin.ingenico.dao.gen.tables.records.IngenicoResponsesRecord, java.lang.String> INGENICO_ERROR_MESSAGE = createField("ingenico_error_message", org.jooq.impl.SQLDataType.VARCHAR.length(255), this, "");
 
 	/**
-	 * The column <code>killbill.ingenico_responses.pg_error_code</code>.
+	 * The column <code>killbill.ingenico_responses.payment_internal_ref</code>.
 	 */
-	public final org.jooq.TableField<org.killbill.billing.plugin.ingenico.dao.gen.tables.records.IngenicoResponsesRecord, java.lang.String> PG_ERROR_CODE = createField("pg_error_code", org.jooq.impl.SQLDataType.VARCHAR.length(64), this, "");
+	public final org.jooq.TableField<org.killbill.billing.plugin.ingenico.dao.gen.tables.records.IngenicoResponsesRecord, java.lang.String> PAYMENT_INTERNAL_REF = createField("payment_internal_ref", org.jooq.impl.SQLDataType.VARCHAR.length(64), this, "");
 
 	/**
-	 * The column <code>killbill.ingenico_responses.pg_error_message</code>.
+	 * The column <code>killbill.ingenico_responses.fraud_avs_result</code>.
 	 */
-	public final org.jooq.TableField<org.killbill.billing.plugin.ingenico.dao.gen.tables.records.IngenicoResponsesRecord, java.lang.String> PG_ERROR_MESSAGE = createField("pg_error_message", org.jooq.impl.SQLDataType.VARCHAR.length(255), this, "");
+	public final org.jooq.TableField<org.killbill.billing.plugin.ingenico.dao.gen.tables.records.IngenicoResponsesRecord, java.lang.String> FRAUD_AVS_RESULT = createField("fraud_avs_result", org.jooq.impl.SQLDataType.CHAR.length(1), this, "");
 
 	/**
-	 * The column <code>killbill.ingenico_responses.reference</code>.
+	 * The column <code>killbill.ingenico_responses.fraud_cvv_result</code>.
 	 */
-	public final org.jooq.TableField<org.killbill.billing.plugin.ingenico.dao.gen.tables.records.IngenicoResponsesRecord, java.lang.String> REFERENCE = createField("reference", org.jooq.impl.SQLDataType.VARCHAR.length(64), this, "");
+	public final org.jooq.TableField<org.killbill.billing.plugin.ingenico.dao.gen.tables.records.IngenicoResponsesRecord, java.lang.String> FRAUD_CVV_RESULT = createField("fraud_cvv_result", org.jooq.impl.SQLDataType.CHAR.length(1), this, "");
 
 	/**
-	 * The column <code>killbill.ingenico_responses.pg_fraud_avs_result</code>.
+	 * The column <code>killbill.ingenico_responses.fraud_service</code>.
 	 */
-	public final org.jooq.TableField<org.killbill.billing.plugin.ingenico.dao.gen.tables.records.IngenicoResponsesRecord, java.lang.String> PG_FRAUD_AVS_RESULT = createField("pg_fraud_avs_result", org.jooq.impl.SQLDataType.CHAR.length(1), this, "");
-
-	/**
-	 * The column <code>killbill.ingenico_responses.pg_fraud_cvv_result</code>.
-	 */
-	public final org.jooq.TableField<org.killbill.billing.plugin.ingenico.dao.gen.tables.records.IngenicoResponsesRecord, java.lang.String> PG_FRAUD_CVV_RESULT = createField("pg_fraud_cvv_result", org.jooq.impl.SQLDataType.CHAR.length(1), this, "");
-
-	/**
-	 * The column <code>killbill.ingenico_responses.pg_fraud_result</code>.
-	 */
-	public final org.jooq.TableField<org.killbill.billing.plugin.ingenico.dao.gen.tables.records.IngenicoResponsesRecord, java.lang.String> PG_FRAUD_RESULT = createField("pg_fraud_result", org.jooq.impl.SQLDataType.VARCHAR.length(255), this, "");
+	public final org.jooq.TableField<org.killbill.billing.plugin.ingenico.dao.gen.tables.records.IngenicoResponsesRecord, java.lang.String> FRAUD_SERVICE = createField("fraud_service", org.jooq.impl.SQLDataType.VARCHAR.length(255), this, "");
 
 	/**
 	 * The column <code>killbill.ingenico_responses.additional_data</code>.

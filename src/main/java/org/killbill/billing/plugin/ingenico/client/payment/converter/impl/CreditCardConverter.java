@@ -53,9 +53,10 @@ public class CreditCardConverter extends PaymentInfoConverter<Card> {
         //TODO: Check what to set here
         cardPaymentMethodSpecificInput.setToken(paymentInfo.getToken());
         cardPaymentMethodSpecificInput.setIsRecurring(false);
+        //cardPaymentMethodSpecificInput.setRecurringPaymentSequenceIndicator("recurring|first");
 
         cardPaymentMethodSpecificInput.setPaymentProductId(paymentInfo.getPaymentProductId());
-        //cardPaymentMethodSpecificInput.setSkipAuthentication(false); ???
+        cardPaymentMethodSpecificInput.setSkipAuthentication(!(cardPaymentMethodSpecificInput.getIsRecurring() && cardPaymentMethodSpecificInput.getRecurringPaymentSequenceIndicator() == "recurring"));
 
         final CreatePaymentRequest ingenicoRequest = super.convertPaymentInfoToPaymentRequest(paymentInfo);
         ingenicoRequest.setCardPaymentMethodSpecificInput(cardPaymentMethodSpecificInput);

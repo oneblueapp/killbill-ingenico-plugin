@@ -59,8 +59,8 @@ public class IngenicoPaymentTransactionInfoPlugin extends PluginPaymentTransacti
               getPaymentPluginStatus(purchaseResult.getIngenicoCallErrorStatus(), purchaseResult.getResult()),
               getGatewayError(purchaseResult),
               truncate(getGatewayErrorCode(purchaseResult)),
-              purchaseResult.getPgTransactionId(),
-              purchaseResult.getPgAuthorizationCode(),
+              purchaseResult.getPaymentId(),
+              purchaseResult.getAuthorizationCode(),
               utcNow,
               utcNow,
               PluginProperties.buildPluginProperties(purchaseResult.getAdditionalData()));
@@ -82,7 +82,7 @@ public class IngenicoPaymentTransactionInfoPlugin extends PluginPaymentTransacti
               getPaymentPluginStatus(paymentModificationResponse.getIngenicoCallErrorStatus(), result),
               getGatewayError(paymentModificationResponse),
               truncate(getGatewayErrorCode(paymentModificationResponse)),
-              paymentModificationResponse.getMerchantReference(),
+              paymentModificationResponse.getPaymentId(),
               null,
               utcNow,
               utcNow,
@@ -98,8 +98,8 @@ public class IngenicoPaymentTransactionInfoPlugin extends PluginPaymentTransacti
               getPaymentPluginStatus(record),
               getGatewayError(record),
               truncate(getGatewayErrorCode(record)),
-              record.getPgMerchantReference(),
-              record.getPgAuthorizationCode(),
+              record.getIngenicoPaymentId(),
+              record.getIngenicoAuthorizationCode(),
               new DateTime(record.getCreatedDate(), DateTimeZone.UTC),
               new DateTime(record.getCreatedDate(), DateTimeZone.UTC),
               IngenicoModelPluginBase.buildPluginProperties(record.getAdditionalData()));
@@ -114,7 +114,7 @@ public class IngenicoPaymentTransactionInfoPlugin extends PluginPaymentTransacti
     }
 
     private static String getGatewayError(final IngenicoResponsesRecord record) {
-        return record.getRefusalReason() != null ? record.getRefusalReason() : toString(IngenicoDao.fromAdditionalData(record.getAdditionalData()).get(PurchaseResult.EXCEPTION_MESSAGE));
+        return record.getIngenicoErrorMessage() != null ? record.getIngenicoErrorMessage() : toString(IngenicoDao.fromAdditionalData(record.getAdditionalData()).get(PurchaseResult.EXCEPTION_MESSAGE));
     }
 
     private static String getGatewayErrorCode(final PurchaseResult purchaseResult) {
@@ -122,19 +122,18 @@ public class IngenicoPaymentTransactionInfoPlugin extends PluginPaymentTransacti
     }
 
     private static String getGatewayErrorCode(final PaymentModificationResponse paymentModificationResponse) {
-        return paymentModificationResponse.getResponse() != null ? paymentModificationResponse.getResponse() : getExceptionClass(paymentModificationResponse.getAdditionalData());
+        return paymentModificationResponse.getStatus() != null ? paymentModificationResponse.getStatus() : getExceptionClass(paymentModificationResponse.getAdditionalData());
     }
 
     private static String getGatewayErrorCode(final IngenicoResponsesRecord record) {
-        return record.getPgErrorCode();
-//        if (record.getResultCode() != null) {
-//            return record.getResultCode();
-//        } else if (record.getPspResult() != null) {
-//            // PaymentModificationResponse
-//            return record.getPspResult();
-//        } else {
-//            return getExceptionClass(IngenicoDao.fromAdditionalData(record.getAdditionalData()));
-//        }
+        if (record.getIngenicoErrorCode() != null) {
+            return record.getIngenicoErrorCode();
+        } else if (record.getIngenicoStatus() != null) {
+            // PaymentModificationResponse
+            return record.getIngenicoStatus();
+        } else {
+            return getExceptionClass(IngenicoDao.fromAdditionalData(record.getAdditionalData()));
+        }
     }
 
     /**
@@ -143,15 +142,15 @@ public class IngenicoPaymentTransactionInfoPlugin extends PluginPaymentTransacti
      */
     private static PaymentPluginStatus getPaymentPluginStatus(final Optional<IngenicoCallErrorStatus> ingenicoCallErrorStatus, final Optional<PaymentServiceProviderResult> result) {
         checkArgument(ingenicoCallErrorStatus.isPresent() ^ result.isPresent());
-        return (result.isPresent()) ? pspResultToPaymentPluginStatus(result.get()) : ingenicoCallErrorStatusToPaymentPluginStatus(ingenicoCallErrorStatus.get());
+        return (result.isPresent()) ? resultToPaymentPluginStatus(result.get()) : ingenicoCallErrorStatusToPaymentPluginStatus(ingenicoCallErrorStatus.get());
     }
 
     private static PaymentPluginStatus getPaymentPluginStatus(final Optional<PaymentServiceProviderResult> result) {
-        return (result.isPresent()) ? pspResultToPaymentPluginStatus(result.get()) : ingenicoCallErrorStatusToPaymentPluginStatus(IngenicoCallErrorStatus.UNKNOWN_FAILURE);
+        return (result.isPresent()) ? resultToPaymentPluginStatus(result.get()) : ingenicoCallErrorStatusToPaymentPluginStatus(IngenicoCallErrorStatus.UNKNOWN_FAILURE);
     }
 
     private static PaymentPluginStatus getPaymentPluginStatus(final IngenicoResponsesRecord record) {
-        if (Strings.isNullOrEmpty(record.getPgMerchantReference())) {
+        if (Strings.isNullOrEmpty(record.getIngenicoPaymentId())) {
             final String ingenicoCallErrorStatusString = toString(IngenicoDao.fromAdditionalData(record.getAdditionalData()).get(PurchaseResult.INGENICO_CALL_ERROR_STATUS));
             final IngenicoCallErrorStatus ingenicoCallErrorStatus;
             if (Strings.isNullOrEmpty(ingenicoCallErrorStatusString)) {
@@ -161,9 +160,9 @@ public class IngenicoPaymentTransactionInfoPlugin extends PluginPaymentTransacti
             }
             return ingenicoCallErrorStatusToPaymentPluginStatus(ingenicoCallErrorStatus);
         } else {
-            final PaymentServiceProviderResult paymentResult = PaymentServiceProviderResult.getPaymentResultForId(record.getPgStatus() != null ? record.getPgStatus() : record.getPgMerchantReference());
-            final Optional<PaymentServiceProviderResult> pspResult = Optional.of(paymentResult);
-            return getPaymentPluginStatus(pspResult);
+            final PaymentServiceProviderResult paymentResult = PaymentServiceProviderResult.getPaymentResultForId(record.getIngenicoStatus() != null ? record.getIngenicoStatus() : record.getIngenicoPaymentId());
+            final Optional<PaymentServiceProviderResult> status = Optional.of(paymentResult);
+            return getPaymentPluginStatus(status);
         }
     }
 
@@ -184,8 +183,8 @@ public class IngenicoPaymentTransactionInfoPlugin extends PluginPaymentTransacti
         }
     }
 
-    private static PaymentPluginStatus pspResultToPaymentPluginStatus(final PaymentServiceProviderResult pspResult) {
-        switch (pspResult) {
+    private static PaymentPluginStatus resultToPaymentPluginStatus(final PaymentServiceProviderResult result) {
+        switch (result) {
             case REDIRECT_SHOPPER:
             case RECEIVED:
             case PENDING:

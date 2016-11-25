@@ -36,13 +36,11 @@ public class PurchaseResult {
     public static final String UNKNOWN = "";
 
     private final Optional<PaymentServiceProviderResult> result;
-    private final String transactionId;
+    private final String paymentId;
     private final String status;
-    private final String paymentMethod;
-    private final String paymentTransactionExternalKey;
-    private final String merchantReference;
+    private final String paymentReference;
     private final String authorisationCode;
-    private final Integer productId;
+    private final String paymentTransactionExternalKey;
     private final String avsResult;
     private final String cvvResult;
     private final String fraudServiceResult;
@@ -50,25 +48,21 @@ public class PurchaseResult {
     private final Map<String, String> additionalData;
 
     public PurchaseResult(final PaymentServiceProviderResult result,
-                          final String transactionId,
+                          final String paymentId,
                           final String status,
-                          final String paymentMethod,
-                          final String merchantReference,
+                          final String paymentReference,
                           final String authorisationCode,
-                          final Integer paymentProductId,
                           final String avsResult,
                           final String cvvResult,
                           final String fraudServiceResult,
                           final String paymentTransactionExternalKey,
                           final Map<String, String> additionalData) {
-        this(Optional.of(result), transactionId, status, paymentMethod, merchantReference, authorisationCode, paymentProductId, avsResult, cvvResult, fraudServiceResult, paymentTransactionExternalKey, null, additionalData);
+        this(Optional.of(result), paymentId, status, paymentReference, authorisationCode, avsResult, cvvResult, fraudServiceResult, paymentTransactionExternalKey, null, additionalData);
     }
 
     public PurchaseResult(final String paymentTransactionExternalKey,
                           final IngenicoCallResult<CreatePaymentResponse> ingenicoCallResult) {
         this(Optional.<PaymentServiceProviderResult>absent(),
-             null,
-             null,
              null,
              null,
              null,
@@ -85,12 +79,10 @@ public class PurchaseResult {
 
 
     public PurchaseResult(final Optional<PaymentServiceProviderResult> result,
-                          final String transactionId,
+                          final String paymentId,
                           final String status,
-                          final String paymentMethod,
-                          final String merchantReference,
+                          final String paymentReference,
                           final String authorisationCode,
-                          final Integer productId,
                           final String avsResult,
                           final String cvvResult,
                           final String fraudServiceResult,
@@ -99,11 +91,9 @@ public class PurchaseResult {
                           final Map<String, String> additionalData) {
         this.ingenicoCallErrorStatus = ingenicoCallErrorStatus;
         this.result = result;
-        this.transactionId = transactionId;
-        this.productId = productId;
+        this.paymentId = paymentId;
         this.status = status;
-        this.paymentMethod = paymentMethod;
-        this.merchantReference = merchantReference;
+        this.paymentReference = paymentReference;
         this.authorisationCode = authorisationCode;
         this.avsResult = avsResult;
         this.cvvResult = cvvResult;
@@ -206,28 +196,20 @@ public class PurchaseResult {
         return result;
     }
 
-    public String getPgTransactionId() {
-        return transactionId;
+    public String getPaymentId() {
+        return paymentId;
     }
 
-    public String getPgStatus() {
+    public String getStatus() {
         return status;
     }
 
-    public String getPgTransactionMethod() {
-        return paymentMethod;
+    public String getPaymentReference() {
+        return paymentReference;
     }
 
-    public String getPgMerchantReference() {
-        return merchantReference;
-    }
-
-    public String getPgAuthorizationCode() {
+    public String getAuthorizationCode() {
         return authorisationCode;
-    }
-
-    public Integer getPgProductiId() {
-        return productId;
     }
 
     public String getPgFraudAvsResult() {

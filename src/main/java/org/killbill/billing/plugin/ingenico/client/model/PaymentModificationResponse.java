@@ -26,37 +26,34 @@ import org.killbill.billing.plugin.ingenico.client.payment.service.IngenicoCallE
 import org.killbill.billing.plugin.ingenico.client.payment.service.IngenicoCallResult;
 
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableMap;
-
-import static org.killbill.billing.plugin.ingenico.client.model.PurchaseResult.INGENICO_CALL_ERROR_STATUS;
 
 public class PaymentModificationResponse<T> {
 
     private final IngenicoCallErrorStatus ingenicoCallErrorStatus;
     private final Map<Object, Object> additionalData;
-    private final String merchantReference;
-    private final String response;
+    private final String paymentId;
+    private final String status;
 
-    public PaymentModificationResponse(final String response, final String merchantReference, final Map<Object, Object> additionalData) {
-        this(merchantReference, response, null, additionalData);
+    public PaymentModificationResponse(final String status, final String paymentId, final Map<Object, Object> additionalData) {
+        this(paymentId, status, null, additionalData);
     }
 
-    public PaymentModificationResponse(final String merchantReference, final IngenicoCallResult<T> ingenicoCallResult, final Map<Object, Object> additionalData) {
-        this(merchantReference, null, ingenicoCallResult.getResponseStatus().orNull(), additionalData);
+    public PaymentModificationResponse(final String paymentId, final IngenicoCallResult<T> ingenicoCallResult, final Map<Object, Object> additionalData) {
+        this(paymentId, null, ingenicoCallResult.getResponseStatus().orNull(), additionalData);
     }
 
-    private PaymentModificationResponse(final String merchantReference,
-                                        final String response,
+    private PaymentModificationResponse(final String paymentId,
+                                        final String status,
                                         @Nullable final IngenicoCallErrorStatus adyenCallErrorStatus,
                                         final Map<Object, Object> additionalData) {
-        this.merchantReference = merchantReference;
-        this.response = response;
+        this.paymentId = paymentId;
+        this.status = status;
         this.ingenicoCallErrorStatus = adyenCallErrorStatus;
         this.additionalData = additionalData;
     }
 
     /**
-     * True if we received a well formed soap response from adyen.
+     * True if we received a well formed soap status from adyen.
      */
     public boolean isTechnicallySuccessful() {
         return !getIngenicoCallErrorStatus().isPresent();
@@ -66,12 +63,12 @@ public class PaymentModificationResponse<T> {
         return additionalData;
     }
 
-    public String getMerchantReference() {
-        return merchantReference;
+    public String getPaymentId() {
+        return paymentId;
     }
 
-    public String getResponse() {
-        return response;
+    public String getStatus() {
+        return status;
     }
 
     public Optional<IngenicoCallErrorStatus> getIngenicoCallErrorStatus() {
@@ -82,8 +79,8 @@ public class PaymentModificationResponse<T> {
     public String toString() {
         final StringBuilder sb = new StringBuilder("PaymentModificationResponse{");
         sb.append("ingenicoCallErrorStatus=").append(ingenicoCallErrorStatus);
-        sb.append(", merchantReference='").append(merchantReference).append('\'');
-        sb.append(", response='").append(response).append('\'');
+        sb.append(", paymentId='").append(paymentId).append('\'');
+        sb.append(", status='").append(status).append('\'');
         sb.append(", additionalData={");
         // Make sure to escape values, as they may contain spaces
         final Iterator<Object> iterator = additionalData.keySet().iterator();
@@ -117,11 +114,11 @@ public class PaymentModificationResponse<T> {
         if (additionalData != null ? !additionalData.equals(that.additionalData) : that.additionalData != null) {
             return false;
         }
-        if (merchantReference != null ? !merchantReference.equals(that.merchantReference) : that.merchantReference != null) {
+        if (paymentId != null ? !paymentId.equals(that.paymentId) : that.paymentId != null) {
             return false;
         }
         //noinspection SimplifiableIfStatement
-        if (response != null ? !response.equals(that.response) : that.response != null) {
+        if (status != null ? !status.equals(that.status) : that.status != null) {
             return false;
         }
         return !(ingenicoCallErrorStatus != null ? !ingenicoCallErrorStatus.equals(that.ingenicoCallErrorStatus) : that.ingenicoCallErrorStatus != null);
@@ -131,8 +128,8 @@ public class PaymentModificationResponse<T> {
     @Override
     public int hashCode() {
         int result = additionalData != null ? additionalData.hashCode() : 0;
-        result = 31 * result + (merchantReference != null ? merchantReference.hashCode() : 0);
-        result = 31 * result + (response != null ? response.hashCode() : 0);
+        result = 31 * result + (paymentId != null ? paymentId.hashCode() : 0);
+        result = 31 * result + (status != null ? status.hashCode() : 0);
         result = 31 * result + (ingenicoCallErrorStatus != null ? ingenicoCallErrorStatus.hashCode() : 0);
         return result;
     }

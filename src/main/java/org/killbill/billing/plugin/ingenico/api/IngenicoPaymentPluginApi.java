@@ -69,9 +69,6 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
     private final IngenicoConfigurationHandler ingenicoConfigurationHandler;
     private final OSGIKillbillLogService logService;
 
-    // Shared properties
-    public static final String PROPERTY_MERCHANT_ID = "merchantId";
-
     // Credit cards
     public static final String PROPERTY_CC_ISSUER_COUNTRY = "issuerCountry";
 
@@ -108,9 +105,9 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
         return executeFollowUpTransaction(TransactionType.CAPTURE,
                                           new TransactionExecutor<PaymentModificationResponse>() {
                                               @Override
-                                              public PaymentModificationResponse execute(final String merchantAccount, final PaymentData paymentData, final String pspReference, final SplitSettlementData splitSettlementData) {
+                                              public PaymentModificationResponse execute(final PaymentData paymentData, final String paymentId, final SplitSettlementData splitSettlementData) {
                                                   final IngenicoClient ingenicoClient = ingenicoConfigurationHandler.getConfigurable(context.getTenantId());
-                                                  return ingenicoClient.capture(paymentData, splitSettlementData);
+                                                  return ingenicoClient.capture(paymentData, paymentId, splitSettlementData);
                                               }
                                           },
                                           kbAccountId,
@@ -147,9 +144,9 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
         return executeFollowUpTransaction(TransactionType.VOID,
                                           new TransactionExecutor<PaymentModificationResponse>() {
                                               @Override
-                                              public PaymentModificationResponse execute(final String merchantAccount, final PaymentData paymentData, final String pspReference, final SplitSettlementData splitSettlementData) {
+                                              public PaymentModificationResponse execute(final PaymentData paymentData, final String pspReference, final SplitSettlementData splitSettlementData) {
                                                   final IngenicoClient ingenicoClient = ingenicoConfigurationHandler.getConfigurable(context.getTenantId());
-                                                  return ingenicoClient.cancel(merchantAccount, paymentData, pspReference, splitSettlementData);
+                                                  return ingenicoClient.cancel(paymentData, pspReference, splitSettlementData);
                                               }
                                           },
                                           kbAccountId,
@@ -172,9 +169,9 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
         return executeFollowUpTransaction(TransactionType.REFUND,
                                           new TransactionExecutor<PaymentModificationResponse>() {
                                               @Override
-                                              public PaymentModificationResponse execute(final String merchantAccount, final PaymentData paymentData, final String pspReference, final SplitSettlementData splitSettlementData) {
+                                              public PaymentModificationResponse execute(final PaymentData paymentData, final String pspReference, final SplitSettlementData splitSettlementData) {
                                                   final IngenicoClient ingenicoClient = ingenicoConfigurationHandler.getConfigurable(context.getTenantId());
-                                                  return ingenicoClient.refund(merchantAccount, paymentData, pspReference, splitSettlementData);
+                                                  return ingenicoClient.refund(paymentData, pspReference, splitSettlementData);
                                               }
                                           },
                                           kbAccountId,
@@ -286,11 +283,11 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
 
     private abstract static class TransactionExecutor<T> {
 
-        public T execute(final String merchantAccount, final PaymentData paymentData, final UserData userData, final SplitSettlementData splitSettlementData) {
+        public T execute(final PaymentData paymentData, final UserData userData, final SplitSettlementData splitSettlementData) {
             throw new UnsupportedOperationException();
         }
 
-        public T execute(final String merchantAccount, final PaymentData paymentData, final String pspReference, final SplitSettlementData splitSettlementData) {
+        public T execute(final PaymentData paymentData, final String pspReference, final SplitSettlementData splitSettlementData) {
             throw new UnsupportedOperationException();
         }
     }
@@ -307,7 +304,7 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
         return executeInitialTransaction(transactionType,
                                          new TransactionExecutor<PurchaseResult>() {
                                              @Override
-                                             public PurchaseResult execute(final String merchantAccount, final PaymentData paymentData, final UserData userData, final SplitSettlementData splitSettlementData) {
+                                             public PurchaseResult execute(final PaymentData paymentData, final UserData userData, final SplitSettlementData splitSettlementData) {
                                                  final IngenicoClient ingenicoClient = ingenicoConfigurationHandler.getConfigurable(context.getTenantId());
 
                                                  if (transactionType == TransactionType.CREDIT) {
@@ -349,9 +346,7 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
         final SplitSettlementData splitSettlementData = null;
         final DateTime utcNow = clock.getUTCNow();
 
-        final String merchantAccount = getMerchantAccount(paymentData, properties, context);
-
-        final PurchaseResult response = transactionExecutor.execute(merchantAccount, paymentData, userData, splitSettlementData);
+        final PurchaseResult response = transactionExecutor.execute(paymentData, userData, splitSettlementData);
         try {
             dao.addResponse(kbAccountId, kbPaymentId, kbTransactionId, transactionType, amount, currency, response, utcNow, context.getTenantId());
             return new IngenicoPaymentTransactionInfoPlugin(kbPaymentId, kbTransactionId, transactionType, amount, currency, utcNow, response);
@@ -372,13 +367,13 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
                                                                     final TenantContext context) throws PaymentPluginApiException {
         final Account account = getAccount(kbAccountId, context);
 
-        final String merchantReference;
+        final String paymentId;
         try {
             final IngenicoResponsesRecord previousResponse = dao.getSuccessfulAuthorizationResponse(kbPaymentId, context.getTenantId());
             if (previousResponse == null) {
                 throw new PaymentPluginApiException(null, "Unable to retrieve previous payment response for kbTransactionId " + kbTransactionId);
             }
-            merchantReference = previousResponse.getPgMerchantReference();
+            paymentId = previousResponse.getIngenicoPaymentId();
         } catch (final SQLException e) {
             throw new PaymentPluginApiException("Unable to retrieve previous payment response for kbTransactionId " + kbTransactionId, e);
         }
@@ -388,9 +383,7 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
         final SplitSettlementData splitSettlementData = null;
         final DateTime utcNow = clock.getUTCNow();
 
-        final String merchantAccount = getMerchantAccount(paymentData, properties, context);
-
-        final PaymentModificationResponse response = transactionExecutor.execute(merchantAccount, paymentData, merchantReference, splitSettlementData);
+        final PaymentModificationResponse response = transactionExecutor.execute(paymentData, paymentId, splitSettlementData);
         final Optional<PaymentServiceProviderResult> paymentServiceProviderResult;
         if (response.isTechnicallySuccessful()) {
             paymentServiceProviderResult = Optional.of(PaymentServiceProviderResult.RECEIVED);
@@ -441,15 +434,5 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
 
     private PaymentInfo buildPaymentInfo(AccountData account, Iterable<PluginProperty> properties, TenantContext context) {
         return PaymentInfoMappingService.toPaymentInfo(clock, account, properties);
-    }
-
-    private String getMerchantAccount(final PaymentData paymentData, final Iterable<PluginProperty> properties, final TenantContext context) {
-        final String countryIsoCode = paymentData.getPaymentInfo().getCountry();
-        return getMerchantAccount(countryIsoCode, properties, context);
-    }
-
-    private String getMerchantAccount(final String countryCode, final Iterable<PluginProperty> properties, final TenantContext context) {
-        final String pluginPropertyMerchantId = PluginProperties.findPluginPropertyValue(PROPERTY_MERCHANT_ID, properties);
-        return pluginPropertyMerchantId;
     }
 }

@@ -69,10 +69,8 @@ public class IngenicoClient extends BaseIngenicoPaymentServiceProviderPort imple
                 paymentServiceProviderResult,
                 paymentResponse.getId(),
                 paymentResponse.getStatus(),
-                paymentOutput.getPaymentMethod(),
-                paymentOutput.getReferences().getMerchantReference(),
+                paymentOutput.getReferences().getPaymentReference(),
                 paymentOutput.getCardPaymentMethodSpecificOutput().getAuthorisationCode(),
-                paymentOutput.getCardPaymentMethodSpecificOutput().getPaymentProductId(),
                 paymentOutput.getCardPaymentMethodSpecificOutput().getFraudResults().getAvsResult(),
                 paymentOutput.getCardPaymentMethodSpecificOutput().getFraudResults().getCvvResult(),
                 paymentOutput.getCardPaymentMethodSpecificOutput().getFraudResults().getFraudServiceResult(),
@@ -85,8 +83,7 @@ public class IngenicoClient extends BaseIngenicoPaymentServiceProviderPort imple
         return new PurchaseResult(paymentData.getPaymentTransactionExternalKey(), ingenicoCall);
     }
 
-    public PaymentModificationResponse capture(final PaymentData paymentData, final SplitSettlementData splitSettlementData) {
-        final String paymentId = null;
+    public PaymentModificationResponse capture(final PaymentData paymentData, final String paymentId, final SplitSettlementData splitSettlementData) {
         ApprovePaymentRequest body = ingenicoRequestFactory.approvePaymentRequest(paymentData, paymentId, splitSettlementData);
         final IngenicoCallResult<PaymentApprovalResponse> ingenicoCallResult = ingenicoPaymentRequestSender.approve(paymentId, body);
 
@@ -117,11 +114,11 @@ public class IngenicoClient extends BaseIngenicoPaymentServiceProviderPort imple
         return ingenicoCallResult.getResult().get().getToken();
     }
 
-    public PaymentModificationResponse cancel(final String merchantAccount, final PaymentData paymentData, final String pspReference, final SplitSettlementData splitSettlementData) {
+    public PaymentModificationResponse cancel(final PaymentData paymentData, final String paymentId, final SplitSettlementData splitSettlementData) {
         return null;
     }
 
-    public PaymentModificationResponse refund(final String merchantAccount, final PaymentData paymentData, final String pspReference, final SplitSettlementData splitSettlementData) {
+    public PaymentModificationResponse refund(final PaymentData paymentData, final String paymentId, final SplitSettlementData splitSettlementData) {
         return null;
     }
 
