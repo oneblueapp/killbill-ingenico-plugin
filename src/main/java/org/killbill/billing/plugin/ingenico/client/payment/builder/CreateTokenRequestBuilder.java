@@ -19,29 +19,19 @@ package org.killbill.billing.plugin.ingenico.client.payment.builder;
 
 import javax.annotation.Nullable;
 
-import org.killbill.billing.plugin.ingenico.client.model.PaymentData;
 import org.killbill.billing.plugin.ingenico.client.model.PaymentInfo;
 import org.killbill.billing.plugin.ingenico.client.model.SplitSettlementData;
 import org.killbill.billing.plugin.ingenico.client.model.UserData;
 import org.killbill.billing.plugin.ingenico.client.payment.converter.PaymentInfoConverterManagement;
 
 import com.ingenico.connect.gateway.sdk.java.domain.definitions.Address;
-import com.ingenico.connect.gateway.sdk.java.domain.definitions.AmountOfMoney;
 import com.ingenico.connect.gateway.sdk.java.domain.definitions.CompanyInformation;
 import com.ingenico.connect.gateway.sdk.java.domain.definitions.ContactDetailsBase;
-import com.ingenico.connect.gateway.sdk.java.domain.payment.CreatePaymentRequest;
-import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.AddressPersonal;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.ContactDetails;
-import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.Customer;
-import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.Order;
-import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.OrderReferences;
-import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.PersonalInformation;
-import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.PersonalName;
 import com.ingenico.connect.gateway.sdk.java.domain.token.CreateTokenRequest;
 import com.ingenico.connect.gateway.sdk.java.domain.token.definitions.ContactDetailsToken;
 import com.ingenico.connect.gateway.sdk.java.domain.token.definitions.CustomerToken;
 import com.ingenico.connect.gateway.sdk.java.domain.token.definitions.CustomerTokenWithContactDetails;
-import com.ingenico.connect.gateway.sdk.java.domain.token.definitions.MandateSepaDirectDebitWithoutCreditor;
 import com.ingenico.connect.gateway.sdk.java.domain.token.definitions.PersonalInformationToken;
 import com.ingenico.connect.gateway.sdk.java.domain.token.definitions.PersonalNameToken;
 import com.ingenico.connect.gateway.sdk.java.domain.token.definitions.TokenCard;
@@ -74,15 +64,15 @@ public class CreateTokenRequestBuilder extends RequestBuilder<CreateTokenRequest
         contactDetailsBase.setEmailAddress(userData.getShopperEmail());
         contactDetailsBase.setEmailMessageType("html");
 
-        ContactDetails contactDetails = (ContactDetails)contactDetailsBase;
-        contactDetails.setPhoneNumber(userData.getTelephoneNumber());
-
         PersonalNameToken personalNameToken = new PersonalNameToken();
         personalNameToken.setFirstName(userData.getFirstName());
         personalNameToken.setSurname(userData.getLastName());
 
-        CompanyInformation companyInformation = new CompanyInformation();
-        companyInformation.setName(userData.getCompanyName());
+        CompanyInformation companyInformation = null;
+        if (userData.getCompanyName() != null) {
+            companyInformation = new CompanyInformation();
+            companyInformation.setName(userData.getCompanyName());
+        }
 
         PersonalInformationToken personalInformationToken = new PersonalInformationToken();
         personalInformationToken.setName(personalNameToken);
@@ -97,6 +87,7 @@ public class CreateTokenRequestBuilder extends RequestBuilder<CreateTokenRequest
             customer.setCompanyInformation(companyInformation);
             customer.setMerchantCustomerId(userData.getShopperReference());
             customer.setBillingAddress(billingAddress);
+            tokenCard.setCustomer(customer);
             request.setCard(tokenCard);
         }
         else if (null != request.getSepaDirectDebit()) {

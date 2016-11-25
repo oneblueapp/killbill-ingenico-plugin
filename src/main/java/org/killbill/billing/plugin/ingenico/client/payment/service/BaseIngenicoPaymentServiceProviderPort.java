@@ -40,7 +40,7 @@ public abstract class BaseIngenicoPaymentServiceProviderPort {
         }
         logBuffer.append(", error=false");
 
-        logger.info(logBuffer.toString());
+        //logger.info(logBuffer.toString());
     }
 
     protected void logTransaction(final String transactionType, final String pspReference, final PaymentData paymentData, final PaymentModificationResponse response, final IngenicoCallResult<?> adyenCall) {
@@ -52,7 +52,7 @@ public abstract class BaseIngenicoPaymentServiceProviderPort {
         appendDuration(logBuffer, adyenCall.getDuration());
         logBuffer.append(", error=false");
 
-        logger.info(logBuffer.toString());
+        //logger.info(logBuffer.toString());
     }
 
     protected void logTransactionError(final String transactionType, final UserData userData, final PaymentData paymentData, final IngenicoCallResult<?> adyenCall) {
@@ -64,7 +64,7 @@ public abstract class BaseIngenicoPaymentServiceProviderPort {
         appendDuration(logBuffer, adyenCall.getDuration());
         logBuffer.append(", error=true");
 
-        logger.warn(logBuffer.toString());
+        //logger.warn(logBuffer.toString());
     }
 
     protected void logTransactionError(final String transactionType, final String paymentId,  final PaymentData paymentData, final IngenicoCallResult<?> adyenCall) {
@@ -76,7 +76,7 @@ public abstract class BaseIngenicoPaymentServiceProviderPort {
         appendDuration(logBuffer, adyenCall.getDuration());
         logBuffer.append(", error=true");
 
-        logger.warn(logBuffer.toString());
+        //logger.warn(logBuffer.toString());
     }
 
     private void appendTransactionType(final StringBuilder buffer, final String transactionType) {

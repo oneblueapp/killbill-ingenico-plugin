@@ -17,7 +17,10 @@
 
 package org.killbill.billing.plugin.ingenico.client.payment.service;
 
+import java.util.List;
+
 import com.google.common.base.Optional;
+import com.ingenico.connect.gateway.sdk.java.domain.errors.definitions.APIError;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -92,12 +95,18 @@ class UnSuccessfulIngenicoCall<T> implements IngenicoCallResult<T> {
     private final IngenicoCallErrorStatus responseStatus;
     private final String exceptionClass;
     private final String exceptionMessage;
+    private final List<APIError> errors;
     private long duration;
 
     UnSuccessfulIngenicoCall(final IngenicoCallErrorStatus responseStatus, final Throwable rootCause) {
+        this(responseStatus, rootCause, null);
+    }
+
+    UnSuccessfulIngenicoCall(final IngenicoCallErrorStatus responseStatus, final Throwable rootCause, List<APIError> errors) {
         this.responseStatus = responseStatus;
         this.exceptionClass = rootCause.getClass().getCanonicalName();
         this.exceptionMessage = rootCause.getMessage();
+        this.errors = errors;
     }
 
     @Override

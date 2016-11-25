@@ -61,10 +61,12 @@ public class PurchaseResult {
     }
 
     public PurchaseResult(final String paymentTransactionExternalKey,
+                          final String paymentId,
+                          final String status,
                           final IngenicoCallResult<CreatePaymentResponse> ingenicoCallResult) {
         this(Optional.<PaymentServiceProviderResult>absent(),
-             null,
-             null,
+             paymentId,
+             status,
              null,
              null,
              null,
@@ -192,7 +194,6 @@ public class PurchaseResult {
 
 
     public Optional<PaymentServiceProviderResult> getResult() {
-        Optional<PaymentServiceProviderResult> result = null;
         return result;
     }
 

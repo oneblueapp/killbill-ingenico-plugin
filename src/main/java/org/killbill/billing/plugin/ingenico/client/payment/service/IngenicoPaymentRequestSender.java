@@ -23,6 +23,7 @@ import java.net.ConnectException;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.util.List;
 
 import javax.xml.ws.soap.SOAPFaultException;
 
@@ -40,6 +41,7 @@ import com.ingenico.connect.gateway.sdk.java.GlobalCollectException;
 import com.ingenico.connect.gateway.sdk.java.IdempotenceException;
 import com.ingenico.connect.gateway.sdk.java.ReferenceException;
 import com.ingenico.connect.gateway.sdk.java.ValidationException;
+import com.ingenico.connect.gateway.sdk.java.domain.errors.definitions.APIError;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.ApprovePaymentRequest;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.CancelPaymentResponse;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.CreatePaymentRequest;
@@ -154,26 +156,34 @@ public class IngenicoPaymentRequestSender implements Closeable {
         } else if (rootCause instanceof UnknownHostException) {
             return new UnSuccessfulIngenicoCall<T>(REQUEST_NOT_SEND, rootCause);
         } else if (rootCause instanceof ValidationException) {
-            return new UnSuccessfulIngenicoCall<T>(RESPONSE_ABOUT_INVALID_REQUEST, rootCause);
+            List<APIError> errors = ((ValidationException)rootCause).getErrors();
+            return new UnSuccessfulIngenicoCall<T>(RESPONSE_ABOUT_INVALID_REQUEST, rootCause, errors);
         } else if (rootCause instanceof IllegalArgumentException) {
             return new UnSuccessfulIngenicoCall<T>(RESPONSE_ABOUT_INVALID_REQUEST, rootCause);
         } else if (rootCause instanceof DeclinedPaymentException) {
-            return new UnSuccessfulIngenicoCall<T>(RESPONSE_ABOUT_INVALID_REQUEST, rootCause);
+            List<APIError> errors = ((DeclinedPaymentException)rootCause).getErrors();
+            return new UnSuccessfulIngenicoCall<T>(RESPONSE_ABOUT_INVALID_REQUEST, rootCause, errors);
         } else if (rootCause instanceof DeclinedPayoutException) {
-            return new UnSuccessfulIngenicoCall<T>(RESPONSE_ABOUT_INVALID_REQUEST, rootCause);
+            List<APIError> errors = ((DeclinedPayoutException)rootCause).getErrors();
+            return new UnSuccessfulIngenicoCall<T>(RESPONSE_ABOUT_INVALID_REQUEST, rootCause, errors);
         } else if (rootCause instanceof DeclinedRefundException) {
-            return new UnSuccessfulIngenicoCall<T>(RESPONSE_ABOUT_INVALID_REQUEST, rootCause);
+            List<APIError> errors = ((DeclinedRefundException)rootCause).getErrors();
+            return new UnSuccessfulIngenicoCall<T>(RESPONSE_ABOUT_INVALID_REQUEST, rootCause, errors);
         } else if (rootCause instanceof AuthorizationException) {
-            return new UnSuccessfulIngenicoCall<T>(REQUEST_NOT_SEND, rootCause);
+            List<APIError> errors = ((AuthorizationException)rootCause).getErrors();
+            return new UnSuccessfulIngenicoCall<T>(REQUEST_NOT_SEND, rootCause, errors);
         } else if (rootCause instanceof ReferenceException) {
-            return new UnSuccessfulIngenicoCall<T>(REQUEST_NOT_SEND, rootCause);
+            List<APIError> errors = ((ReferenceException)rootCause).getErrors();
+            return new UnSuccessfulIngenicoCall<T>(REQUEST_NOT_SEND, rootCause, errors);
         } else if (rootCause instanceof IdempotenceException) {
-            // happens for example when 301 with empty body is returned...
-            return new UnSuccessfulIngenicoCall<T>(REQUEST_NOT_SEND, rootCause);
+            List<APIError> errors = ((IdempotenceException)rootCause).getErrors();
+            return new UnSuccessfulIngenicoCall<T>(REQUEST_NOT_SEND, rootCause, errors);
         } else if (rootCause instanceof GlobalCollectException) {
-            return new UnSuccessfulIngenicoCall<T>(RESPONSE_INVALID, rootCause);
+            List<APIError> errors = ((GlobalCollectException)rootCause).getErrors();
+            return new UnSuccessfulIngenicoCall<T>(RESPONSE_INVALID, rootCause, errors);
         } else if (rootCause instanceof ApiException) {
-            return new UnSuccessfulIngenicoCall<T>(RESPONSE_ABOUT_INVALID_REQUEST, rootCause);
+            List<APIError> errors = ((ApiException)rootCause).getErrors();
+            return new UnSuccessfulIngenicoCall<T>(RESPONSE_ABOUT_INVALID_REQUEST, rootCause, errors);
         } else if (rootCause instanceof IOException) {
             if (errorMessage.contains("Invalid Http response")) {
                 // unparsable data as response

@@ -48,7 +48,7 @@ public class RecurringConverter extends PaymentInfoConverter<Recurring> {
 //        cardPaymentMethodSpecificInput.setIsRecurring(true);
 //        cardPaymentMethodSpecificInput.setRecurringPaymentSequenceIndicator("first|recurring");
 //        cardPaymentMethodSpecificInput.setPaymentProductId(paymentInfo.getPaymentProductId());
-        cardPaymentMethodSpecificInput.setSkipAuthentication(!(cardPaymentMethodSpecificInput.getIsRecurring() && cardPaymentMethodSpecificInput.getRecurringPaymentSequenceIndicator() == "recurring"));
+        //cardPaymentMethodSpecificInput.setSkipAuthentication(!(cardPaymentMethodSpecificInput.getIsRecurring() && cardPaymentMethodSpecificInput.getRecurringPaymentSequenceIndicator() == "recurring"));
         cardPaymentMethodSpecificInput.setCard(card);
         cardPaymentMethodSpecificInput.setToken(paymentInfo.getRecurringDetailReference());
         paymentRequest.setCardPaymentMethodSpecificInput(cardPaymentMethodSpecificInput);
