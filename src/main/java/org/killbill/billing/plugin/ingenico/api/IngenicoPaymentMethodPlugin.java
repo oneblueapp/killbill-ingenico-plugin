@@ -1,11 +1,10 @@
 package org.killbill.billing.plugin.ingenico.api;
 
-import org.killbill.billing.payment.api.PaymentMethodPlugin;
+import java.util.UUID;
+
 import org.killbill.billing.plugin.api.payment.PluginPaymentMethodPlugin;
 import org.killbill.billing.plugin.ingenico.dao.IngenicoDao;
 import org.killbill.billing.plugin.ingenico.dao.gen.tables.records.IngenicoPaymentMethodsRecord;
-
-import java.util.UUID;
 
 /**
  * Created by otaviosoares on 15/11/16.

@@ -30,23 +30,89 @@ public interface IngenicoCallResult<T> {
 
     long getDuration();
 
+    String getPaymentId();
+
+    String getStatus();
+
     Optional<IngenicoCallErrorStatus> getResponseStatus();
 
     Optional<String> getExceptionClass();
 
     Optional<String> getExceptionMessage();
 
+    Optional<List<APIError>> getErrors();
+
     boolean receivedWellFormedResponse();
 
 }
 
-class SuccessfulIngenicoCall<T> implements IngenicoCallResult<T> {
+abstract class IngenicoCallBase<T> implements IngenicoCallResult<T>  {
+    private final String paymentId;
+    private final String status;
+
+    public IngenicoCallBase(String paymentId, String status) {
+        this.paymentId = paymentId;
+        this.status = status;
+    }
+
+    @Override
+    public Optional<T> getResult() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public long getDuration() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String getPaymentId() {
+        return paymentId;
+    }
+
+    @Override
+    public String getStatus() {
+        return status;
+    }
+
+    @Override
+    public Optional<IngenicoCallErrorStatus> getResponseStatus() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Optional<String> getExceptionClass() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Optional<String> getExceptionMessage() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Optional<List<APIError>> getErrors() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean receivedWellFormedResponse() {
+        throw new UnsupportedOperationException();
+    }
+}
+
+class SuccessfulIngenicoCall<T> extends IngenicoCallBase {
 
     private final T result;
 
     private final long duration;
 
     public SuccessfulIngenicoCall(final T result, long duration) {
+        this(result, null, null, duration);
+    }
+
+    public SuccessfulIngenicoCall(final T result, String paymentId, String status, long duration) {
+        super(paymentId, status);
         this.result = checkNotNull(result, "result");
         this.duration = duration;
     }
@@ -77,6 +143,11 @@ class SuccessfulIngenicoCall<T> implements IngenicoCallResult<T> {
     }
 
     @Override
+    public Optional<List<APIError>> getErrors() {
+        return null;
+    }
+
+    @Override
     public boolean receivedWellFormedResponse() {
         return true;
     }
@@ -90,7 +161,7 @@ class SuccessfulIngenicoCall<T> implements IngenicoCallResult<T> {
     }
 }
 
-class UnSuccessfulIngenicoCall<T> implements IngenicoCallResult<T> {
+class UnSuccessfulIngenicoCall<T> extends IngenicoCallBase {
 
     private final IngenicoCallErrorStatus responseStatus;
     private final String exceptionClass;
@@ -99,10 +170,15 @@ class UnSuccessfulIngenicoCall<T> implements IngenicoCallResult<T> {
     private long duration;
 
     UnSuccessfulIngenicoCall(final IngenicoCallErrorStatus responseStatus, final Throwable rootCause) {
-        this(responseStatus, rootCause, null);
+        this(responseStatus, rootCause, null, null, null);
     }
 
     UnSuccessfulIngenicoCall(final IngenicoCallErrorStatus responseStatus, final Throwable rootCause, List<APIError> errors) {
+        this(responseStatus, rootCause, errors, null, null);
+    }
+
+    UnSuccessfulIngenicoCall(final IngenicoCallErrorStatus responseStatus, final Throwable rootCause, List<APIError> errors, String paymentId, String status) {
+        super(paymentId, status);
         this.responseStatus = responseStatus;
         this.exceptionClass = rootCause.getClass().getCanonicalName();
         this.exceptionMessage = rootCause.getMessage();
@@ -136,6 +212,11 @@ class UnSuccessfulIngenicoCall<T> implements IngenicoCallResult<T> {
     @Override
     public Optional<String> getExceptionMessage() {
         return Optional.of(exceptionMessage);
+    }
+
+    @Override
+    public Optional<List<APIError>> getErrors() {
+        return Optional.of(errors);
     }
 
     @Override

@@ -80,7 +80,7 @@ public class IngenicoClient extends BaseIngenicoPaymentServiceProviderPort imple
 
     private PurchaseResult handleTechnicalFailureAtPurchase(final String transactionType, final UserData userData, final PaymentData paymentData, final IngenicoCallResult<CreatePaymentResponse> ingenicoCall) {
         logTransactionError(transactionType, userData, paymentData, ingenicoCall);
-        return new PurchaseResult(paymentData.getPaymentTransactionExternalKey(), null, null, ingenicoCall);
+        return new PurchaseResult(paymentData.getPaymentTransactionExternalKey(), ingenicoCall);
     }
 
     public PaymentModificationResponse capture(final PaymentData paymentData, final String paymentId, final SplitSettlementData splitSettlementData) {

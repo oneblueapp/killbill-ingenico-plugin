@@ -19,6 +19,7 @@ package org.killbill.billing.plugin.ingenico.client.model;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
+import com.ingenico.connect.gateway.sdk.java.domain.errors.definitions.APIError;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.CreatePaymentResponse;
 
 import org.killbill.billing.plugin.ingenico.client.payment.service.IngenicoCallErrorStatus;
@@ -26,6 +27,8 @@ import org.killbill.billing.plugin.ingenico.client.payment.service.IngenicoCallR
 
 import javax.annotation.Nullable;
 
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 public class PurchaseResult {
@@ -46,6 +49,8 @@ public class PurchaseResult {
     private final String fraudServiceResult;
     private final IngenicoCallErrorStatus ingenicoCallErrorStatus;
     private final Map<String, String> additionalData;
+    private final String errorCode;
+    private final String errorMessage;
 
     public PurchaseResult(final PaymentServiceProviderResult result,
                           final String paymentId,
@@ -57,18 +62,19 @@ public class PurchaseResult {
                           final String fraudServiceResult,
                           final String paymentTransactionExternalKey,
                           final Map<String, String> additionalData) {
-        this(Optional.of(result), paymentId, status, paymentReference, authorisationCode, avsResult, cvvResult, fraudServiceResult, paymentTransactionExternalKey, null, additionalData);
+        this(Optional.of(result), paymentId, status, paymentReference, authorisationCode, null, null, avsResult, cvvResult, fraudServiceResult, paymentTransactionExternalKey, null, additionalData);
     }
 
     public PurchaseResult(final String paymentTransactionExternalKey,
-                          final String paymentId,
-                          final String status,
                           final IngenicoCallResult<CreatePaymentResponse> ingenicoCallResult) {
+
         this(Optional.<PaymentServiceProviderResult>absent(),
-             paymentId,
-             status,
+             ingenicoCallResult.getPaymentId(),
+             ingenicoCallResult.getStatus(),
              null,
              null,
+             ingenicoCallResult.getErrors().isPresent() &&  ingenicoCallResult.getErrors().get().size() > 0 ?  ingenicoCallResult.getErrors().get().get(0).getCode() : null,
+             ingenicoCallResult.getErrors().isPresent() &&  ingenicoCallResult.getErrors().get().size() > 0 ?  ingenicoCallResult.getErrors().get().get(0).getMessage() : null,
              null,
              null,
              null,
@@ -85,6 +91,8 @@ public class PurchaseResult {
                           final String status,
                           final String paymentReference,
                           final String authorisationCode,
+                          final String errorCode,
+                          final String errorMessage,
                           final String avsResult,
                           final String cvvResult,
                           final String fraudServiceResult,
@@ -102,6 +110,8 @@ public class PurchaseResult {
         this.fraudServiceResult = fraudServiceResult;
         this.paymentTransactionExternalKey = paymentTransactionExternalKey;
         this.additionalData = additionalData;
+        this.errorCode = errorCode;
+        this.errorMessage = errorMessage;
     }
 
     public Optional<IngenicoCallErrorStatus> getIngenicoCallErrorStatus() {
@@ -111,30 +121,34 @@ public class PurchaseResult {
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("PurchaseResult{");
-//        sb.append("result='").append(result.isPresent() ? result.get() : null).append('\'');
-//        sb.append(", authCode='").append(authCode).append('\'');
-//        sb.append(", pspReference='").append(pspReference).append('\'');
-//        sb.append(", reason='").append(reason).append('\'');
-//        sb.append(", resultCode='").append(resultCode).append('\'');
-//        sb.append(", reference='").append(reference).append('\'');
-//        sb.append(", paymentTransactionExternalKey='").append(paymentTransactionExternalKey).append('\'');
-//        sb.append(", adyenCallErrorStatus=").append(adyenCallErrorStatus);
-//        sb.append(", additionalData={");
-//        // Make sure to escape values, as they may contain spaces (e.g. avsResult='4 AVS not supported for this card type')
-//        final Iterator<String> iterator = additionalData.keySet().iterator();
-//        if (iterator.hasNext()) {
-//            final String key = iterator.next();
-//            sb.append(key).append("='").append(additionalData.get(key)).append("'");
-//        }
-//        while (iterator.hasNext()) {
-//            final String key = iterator.next();
-//            sb.append(", ")
-//              .append(key)
-//              .append("='")
-//              .append(additionalData.get(key))
-//              .append("'");
-//        }
-//        sb.append("}}");
+        sb.append("result='").append(result.isPresent() ? result.get() : null).append('\'');
+        sb.append(", status='").append(status).append('\'');
+        sb.append(", errorCode='").append(errorCode).append('\'');
+        sb.append(", errorMessage='").append(errorMessage).append('\'');
+        sb.append(", paymentId='").append(paymentId).append('\'');
+        sb.append(", paymentReference='").append(paymentReference).append('\'');
+        sb.append(", authorisationCode='").append(authorisationCode).append('\'');
+        sb.append(", avsResult='").append(avsResult).append('\'');
+        sb.append(", cvvResult='").append(cvvResult).append('\'');
+        sb.append(", fraudServiceResult='").append(fraudServiceResult).append('\'');
+        sb.append(", paymentTransactionExternalKey='").append(paymentTransactionExternalKey).append('\'');
+        sb.append(", ingenicoCallErrorStatus=").append(ingenicoCallErrorStatus);
+        sb.append(", additionalData={");
+        // Make sure to escape values, as they may contain spaces (e.g. avsResult='4 AVS not supported for this card type')
+        final Iterator<String> iterator = additionalData.keySet().iterator();
+        if (iterator.hasNext()) {
+            final String key = iterator.next();
+            sb.append(key).append("='").append(additionalData.get(key)).append("'");
+        }
+        while (iterator.hasNext()) {
+            final String key = iterator.next();
+            sb.append(", ")
+              .append(key)
+              .append("='")
+              .append(additionalData.get(key))
+              .append("'");
+        }
+        sb.append("}}");
         return sb.toString();
     }
 
@@ -149,47 +163,64 @@ public class PurchaseResult {
 
         final PurchaseResult that = (PurchaseResult) o;
 
-//        if (result != null ? !result.equals(that.result) : that.result != null) {
-//            return false;
-//        }
-//        if (authCode != null ? !authCode.equals(that.authCode) : that.authCode != null) {
-//            return false;
-//        }
-//        if (pspReference != null ? !pspReference.equals(that.pspReference) : that.pspReference != null) {
-//            return false;
-//        }
-//        if (reason != null ? !reason.equals(that.reason) : that.reason != null) {
-//            return false;
-//        }
-//        if (resultCode != null ? !resultCode.equals(that.resultCode) : that.resultCode != null) {
-//            return false;
-//        }
-//        if (reference != null ? !reference.equals(that.reference) : that.reference != null) {
-//            return false;
-//        }
-//        if (adyenCallErrorStatus != null ? !adyenCallErrorStatus.equals(that.adyenCallErrorStatus) : that.adyenCallErrorStatus != null) {
-//            return false;
-//        }
-        //noinspection SimplifiableIfStatement
-//        if (additionalData != null ? !additionalData.equals(that.additionalData) : that.additionalData != null) {
-//            return false;
-//        }
+        if (result != null ? !result.equals(that.result) : that.result != null) {
+            return false;
+        }
+        if (status != null ? !status.equals(that.status) : that.status != null) {
+            return false;
+        }
+        if (paymentId != null ? !paymentId.equals(that.paymentId) : that.paymentId != null) {
+            return false;
+        }
+        if (errorMessage != null ? !errorMessage.equals(that.errorMessage) : that.errorMessage != null) {
+            return false;
+        }
+        if (errorCode != null ? !errorCode.equals(that.errorCode) : that.errorCode != null) {
+            return false;
+        }
+        if (paymentReference != null ? !paymentReference.equals(that.paymentReference) : that.paymentReference != null) {
+            return false;
+        }
+        if (authorisationCode != null ? !authorisationCode.equals(that.authorisationCode) : that.authorisationCode != null) {
+            return false;
+        }
+        if (avsResult != null ? !avsResult.equals(that.avsResult) : that.avsResult != null) {
+            return false;
+        }
+        if (cvvResult != null ? !cvvResult.equals(that.cvvResult) : that.cvvResult != null) {
+            return false;
+        }
+        if (fraudServiceResult != null ? !fraudServiceResult.equals(that.fraudServiceResult) : that.fraudServiceResult != null) {
+            return false;
+        }
+        if (paymentTransactionExternalKey != null ? !paymentTransactionExternalKey.equals(that.paymentTransactionExternalKey) : that.paymentTransactionExternalKey != null) {
+            return false;
+        }
+        if (ingenicoCallErrorStatus != null ? !ingenicoCallErrorStatus.equals(that.ingenicoCallErrorStatus) : that.ingenicoCallErrorStatus != null) {
+            return false;
+        }
+        if (additionalData != null ? !additionalData.equals(that.additionalData) : that.additionalData != null) {
+            return false;
+        }
         return true;
     }
 
     @Override
     public int hashCode() {
-        return 0;
-//        int result1 = result != null ? result.hashCode() : 0;
-//        result1 = 31 * result1 + (authCode != null ? authCode.hashCode() : 0);
-//        result1 = 31 * result1 + (pspReference != null ? pspReference.hashCode() : 0);
-//        result1 = 31 * result1 + (reason != null ? reason.hashCode() : 0);
-//        result1 = 31 * result1 + (resultCode != null ? resultCode.hashCode() : 0);
-//        result1 = 31 * result1 + (reference != null ? reference.hashCode() : 0);
-//        result1 = 31 * result1 + (paymentTransactionExternalKey != null ? paymentTransactionExternalKey.hashCode() : 0);
-//        //result1 = 31 * result1 + (adyenCallErrorStatus != null ? adyenCallErrorStatus.hashCode() : 0);
-//        result1 = 31 * result1 + (additionalData != null ? additionalData.hashCode() : 0);
-//        return result1;
+        int result1 = result != null ? result.hashCode() : 0;
+        result1 = 31 * result1 + (status != null ? status.hashCode() : 0);
+        result1 = 31 * result1 + (paymentId != null ? paymentId.hashCode() : 0);
+        result1 = 31 * result1 + (errorMessage != null ? errorMessage.hashCode() : 0);
+        result1 = 31 * result1 + (errorCode != null ? errorCode.hashCode() : 0);
+        result1 = 31 * result1 + (paymentReference != null ? paymentReference.hashCode() : 0);
+        result1 = 31 * result1 + (authorisationCode != null ? authorisationCode.hashCode() : 0);
+        result1 = 31 * result1 + (avsResult != null ? avsResult.hashCode() : 0);
+        result1 = 31 * result1 + (cvvResult != null ? cvvResult.hashCode() : 0);
+        result1 = 31 * result1 + (fraudServiceResult != null ? fraudServiceResult.hashCode() : 0);
+        result1 = 31 * result1 + (paymentTransactionExternalKey != null ? paymentTransactionExternalKey.hashCode() : 0);
+        result1 = 31 * result1 + (ingenicoCallErrorStatus != null ? ingenicoCallErrorStatus.hashCode() : 0);
+        result1 = 31 * result1 + (additionalData != null ? additionalData.hashCode() : 0);
+        return result1;
     }
 
 
@@ -213,24 +244,24 @@ public class PurchaseResult {
         return authorisationCode;
     }
 
-    public String getPgFraudAvsResult() {
+    public String getFraudAvsResult() {
         return avsResult;
     }
 
-    public String getPgFraudCvvResult() {
+    public String getFraudCvvResult() {
         return cvvResult;
     }
 
-    public String getPgFraudResult() {
+    public String getFraudResult() {
         return fraudServiceResult;
     }
 
-    public String getPgErrorCode() {
-        return "";
+    public String getErrorCode() {
+        return errorCode;
     }
 
-    public String getPgErrorMessage() {
-        return "";
+    public String getErrorMessage() {
+        return errorMessage;
     }
 
     public String getPaymentTransactionExternalKey() {

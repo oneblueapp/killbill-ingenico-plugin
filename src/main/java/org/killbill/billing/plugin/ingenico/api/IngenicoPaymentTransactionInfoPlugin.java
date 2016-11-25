@@ -106,7 +106,7 @@ public class IngenicoPaymentTransactionInfoPlugin extends PluginPaymentTransacti
     }
 
     private static String getGatewayError(final PurchaseResult purchaseResult) {
-        return purchaseResult.getPgErrorMessage() != null ? purchaseResult.getPgErrorMessage() : purchaseResult.getAdditionalData().get(PurchaseResult.EXCEPTION_MESSAGE);
+        return purchaseResult.getErrorMessage() != null ? purchaseResult.getErrorMessage() : purchaseResult.getAdditionalData().get(PurchaseResult.EXCEPTION_MESSAGE);
     }
 
     private static String getGatewayError(final PaymentModificationResponse paymentModificationResponse) {
@@ -118,7 +118,7 @@ public class IngenicoPaymentTransactionInfoPlugin extends PluginPaymentTransacti
     }
 
     private static String getGatewayErrorCode(final PurchaseResult purchaseResult) {
-        return purchaseResult.getPgErrorCode() != null ? purchaseResult.getPgErrorCode() : getExceptionClass(purchaseResult.getAdditionalData());
+        return purchaseResult.getErrorCode() != null ? purchaseResult.getErrorCode() : getExceptionClass(purchaseResult.getAdditionalData());
     }
 
     private static String getGatewayErrorCode(final PaymentModificationResponse paymentModificationResponse) {

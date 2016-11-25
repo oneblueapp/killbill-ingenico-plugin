@@ -185,8 +185,8 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
     }
 
     @Override
-    protected PaymentTransactionInfoPlugin buildPaymentTransactionInfoPlugin(IngenicoResponsesRecord record) {
-        return null;
+    protected PaymentTransactionInfoPlugin buildPaymentTransactionInfoPlugin(IngenicoResponsesRecord ingenicoResponsesRecord) {
+        return new IngenicoPaymentTransactionInfoPlugin(ingenicoResponsesRecord);
     }
 
     @Override
@@ -195,23 +195,13 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
     }
 
     @Override
-    protected PaymentMethodInfoPlugin buildPaymentMethodInfoPlugin(IngenicoPaymentMethodsRecord record) {
-        return null;
+    protected PaymentMethodInfoPlugin buildPaymentMethodInfoPlugin(IngenicoPaymentMethodsRecord paymentMethodsRecord) {
+        return new IngenicoPaymentMethodInfoPlugin(paymentMethodsRecord);
     }
 
     @Override
-    protected String getPaymentMethodId(IngenicoPaymentMethodsRecord input) {
-        return null;
-    }
-
-    @Override
-    public List<PaymentTransactionInfoPlugin> getPaymentInfo(final UUID kbAccountId, final UUID kbPaymentId, final Iterable<PluginProperty> properties, final TenantContext context) throws PaymentPluginApiException {
-        return null;
-    }
-
-    @Override
-    public Pagination<PaymentTransactionInfoPlugin> searchPayments(final String searchKey, final Long offset, final Long limit, final Iterable<PluginProperty> properties, final TenantContext context) throws PaymentPluginApiException {
-        return null;
+    protected String getPaymentMethodId(IngenicoPaymentMethodsRecord paymentMethodsRecord) {
+        return paymentMethodsRecord.getKbPaymentMethodId();
     }
 
     @Override
@@ -240,46 +230,19 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
     }
 
     @Override
-    public void deletePaymentMethod(final UUID kbAccountId, final UUID kbPaymentMethodId, final Iterable<PluginProperty> properties, final CallContext context) throws PaymentPluginApiException {
-
-    }
-
-    @Override
-    public PaymentMethodPlugin getPaymentMethodDetail(final UUID kbAccountId, final UUID kbPaymentMethodId, final Iterable<PluginProperty> properties, final TenantContext context) throws PaymentPluginApiException {
-        return null;
-    }
-
-    @Override
-    public void setDefaultPaymentMethod(final UUID kbAccountId, final UUID kbPaymentMethodId, final Iterable<PluginProperty> properties, final CallContext context) throws PaymentPluginApiException {
-
-    }
-
-    @Override
-    public List<PaymentMethodInfoPlugin> getPaymentMethods(final UUID kbAccountId, final boolean refreshFromGateway, final Iterable<PluginProperty> properties, final CallContext context) throws PaymentPluginApiException {
-        return null;
-    }
-
-    @Override
-    public Pagination<PaymentMethodPlugin> searchPaymentMethods(final String searchKey, final Long offset, final Long limit, final Iterable<PluginProperty> properties, final TenantContext context) throws PaymentPluginApiException {
-        return null;
-    }
-
-    @Override
-    public void resetPaymentMethods(final UUID kbAccountId, final List<PaymentMethodInfoPlugin> paymentMethods, final Iterable<PluginProperty> properties, final CallContext context) throws PaymentPluginApiException {
-
-    }
-
-    @Override
     public HostedPaymentPageFormDescriptor buildFormDescriptor(final UUID kbAccountId, final Iterable<PluginProperty> customFields, final Iterable<PluginProperty> properties, final CallContext context) throws PaymentPluginApiException {
         return null;
     }
+
+    //    @Override
+//    public List<PaymentMethodInfoPlugin> getPaymentMethods(final UUID kbAccountId, final boolean refreshFromGateway, final Iterable<PluginProperty> properties, final CallContext context) throws PaymentPluginApiException {
+//        return null;
+//    }
 
     @Override
     public GatewayNotification processNotification(final String notification, final Iterable<PluginProperty> properties, final CallContext context) throws PaymentPluginApiException {
         return null;
     }
-
-
 
     private abstract static class TransactionExecutor<T> {
 
