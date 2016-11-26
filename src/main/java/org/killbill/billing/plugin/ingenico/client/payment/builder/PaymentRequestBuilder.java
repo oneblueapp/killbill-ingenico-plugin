@@ -94,7 +94,7 @@ public class PaymentRequestBuilder extends RequestBuilder<CreatePaymentRequest> 
 
         final String currency = paymentData.getCurrency().name();
         final AmountOfMoney amount = new AmountOfMoney();
-        amount.setAmount(toMinorUnits(paymentData.getAmount(), currency));
+        amount.setAmount(toLong(paymentData.getAmount()));
         amount.setCurrencyCode(currency);
         order.setAmountOfMoney(amount);
     }

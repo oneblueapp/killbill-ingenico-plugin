@@ -144,9 +144,9 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
         return executeFollowUpTransaction(TransactionType.VOID,
                                           new TransactionExecutor<PaymentModificationResponse>() {
                                               @Override
-                                              public PaymentModificationResponse execute(final PaymentData paymentData, final String pspReference, final SplitSettlementData splitSettlementData) {
+                                              public PaymentModificationResponse execute(final PaymentData paymentData, final String paymentId, final SplitSettlementData splitSettlementData) {
                                                   final IngenicoClient ingenicoClient = ingenicoConfigurationHandler.getConfigurable(context.getTenantId());
-                                                  return ingenicoClient.cancel(paymentData, pspReference, splitSettlementData);
+                                                  return ingenicoClient.cancel(paymentId, splitSettlementData);
                                               }
                                           },
                                           kbAccountId,
@@ -169,9 +169,9 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
         return executeFollowUpTransaction(TransactionType.REFUND,
                                           new TransactionExecutor<PaymentModificationResponse>() {
                                               @Override
-                                              public PaymentModificationResponse execute(final PaymentData paymentData, final String pspReference, final SplitSettlementData splitSettlementData) {
+                                              public PaymentModificationResponse execute(final PaymentData paymentData, final String paymentId, final SplitSettlementData splitSettlementData) {
                                                   final IngenicoClient ingenicoClient = ingenicoConfigurationHandler.getConfigurable(context.getTenantId());
-                                                  return ingenicoClient.refund(paymentData, pspReference, splitSettlementData);
+                                                  return ingenicoClient.refund(paymentData, paymentId, splitSettlementData);
                                               }
                                           },
                                           kbAccountId,
@@ -250,7 +250,7 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
             throw new UnsupportedOperationException();
         }
 
-        public T execute(final PaymentData paymentData, final String pspReference, final SplitSettlementData splitSettlementData) {
+        public T execute(final PaymentData paymentData, final String paymentId, final SplitSettlementData splitSettlementData) {
             throw new UnsupportedOperationException();
         }
     }
@@ -270,7 +270,7 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
                                              public PurchaseResult execute(final PaymentData paymentData, final UserData userData, final SplitSettlementData splitSettlementData) {
                                                  final IngenicoClient ingenicoClient = ingenicoConfigurationHandler.getConfigurable(context.getTenantId());
 
-                                                 return ingenicoClient.create(paymentData, userData, splitSettlementData);
+                                                 return ingenicoClient.create(transactionType, paymentData, userData, splitSettlementData);
                                              }
                                          },
                                          kbAccountId,

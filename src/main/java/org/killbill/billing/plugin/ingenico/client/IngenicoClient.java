@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.killbill.billing.payment.api.TransactionType;
 import org.killbill.billing.plugin.ingenico.client.model.PaymentData;
 import org.killbill.billing.plugin.ingenico.client.model.PaymentInfo;
 import org.killbill.billing.plugin.ingenico.client.model.PaymentModificationResponse;
@@ -23,7 +24,6 @@ import com.ingenico.connect.gateway.sdk.java.domain.payment.CancelPaymentRespons
 import com.ingenico.connect.gateway.sdk.java.domain.payment.CreatePaymentRequest;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.CreatePaymentResponse;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.PaymentApprovalResponse;
-import com.ingenico.connect.gateway.sdk.java.domain.payment.PaymentResponse;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.Payment;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.PaymentOutput;
 import com.ingenico.connect.gateway.sdk.java.domain.refund.RefundRequest;
@@ -50,21 +50,15 @@ public class IngenicoClient extends BaseIngenicoPaymentServiceProviderPort imple
         ingenicoPaymentRequestSender.close();
     }
 
-    public PurchaseResult create(PaymentData<Card> paymentData, UserData userData, final SplitSettlementData splitSettlementData) {
-        return authoriseOrCredit(true, paymentData, userData, splitSettlementData);
+    public PurchaseResult create(TransactionType transactionType, PaymentData<Card> paymentData, UserData userData, final SplitSettlementData splitSettlementData) {
+        return authorisePurchaseOrCredit(transactionType, paymentData, userData, splitSettlementData);
     }
 
-    public PurchaseResult credit(final PaymentData paymentData, final UserData userData, final SplitSettlementData splitSettlementData) {
-        return authoriseOrCredit(false, paymentData, userData, splitSettlementData);
-    }
-
-    private PurchaseResult authoriseOrCredit(Boolean authorise, final PaymentData<Card> paymentData, final UserData userData, final SplitSettlementData splitSettlementData) {CreatePaymentRequest body = ingenicoRequestFactory.createPaymentRequest(paymentData, userData, splitSettlementData);
+    private PurchaseResult authorisePurchaseOrCredit(TransactionType transactionType, final PaymentData<Card> paymentData, final UserData userData, final SplitSettlementData splitSettlementData) {CreatePaymentRequest body = ingenicoRequestFactory.createPaymentRequest(paymentData, userData, splitSettlementData);
         final IngenicoCallResult<CreatePaymentResponse> ingenicoCallResult = ingenicoPaymentRequestSender.create(body);
 
-        String operation = authorise ? "authorise" : "credit";
-
         if (!ingenicoCallResult.receivedWellFormedResponse()) {
-            return handleTechnicalFailureAtPurchase(operation, userData, paymentData, ingenicoCallResult);
+            return handleTechnicalFailureAtPurchase(transactionType.toString(), userData, paymentData, ingenicoCallResult);
         }
 
         final CreatePaymentResponse result = ingenicoCallResult.getResult().get();
@@ -88,7 +82,6 @@ public class IngenicoClient extends BaseIngenicoPaymentServiceProviderPort imple
                 paymentData.getPaymentTransactionExternalKey(),
                 additionalData);
     }
-
 
     private PurchaseResult handleTechnicalFailureAtPurchase(final String transactionType, final UserData userData, final PaymentData paymentData, final IngenicoCallResult<CreatePaymentResponse> ingenicoCall) {
         logTransactionError(transactionType, userData, paymentData, ingenicoCall);
@@ -116,6 +109,35 @@ public class IngenicoClient extends BaseIngenicoPaymentServiceProviderPort imple
         //return new PurchaseResult(paymentData.getPaymentTransactionExternalKey(), ingenicoCall);
     }
 
+    public PaymentModificationResponse cancel(final String paymentId, final SplitSettlementData splitSettlementData) {
+        final IngenicoCallResult<CancelPaymentResponse> ingenicoCallResult = ingenicoPaymentRequestSender.cancel(paymentId);
+        if (!ingenicoCallResult.receivedWellFormedResponse()) {
+            return handleTechnicalFailureAtCancel(paymentId, ingenicoCallResult);
+        }
+        return null;
+    }
+
+    private PaymentModificationResponse handleTechnicalFailureAtCancel(final String paymentId, final IngenicoCallResult<CancelPaymentResponse> ingenicoCall) {
+        logTransactionError("cancel", paymentId, null, ingenicoCall);
+        return null;
+        //return new PurchaseResult(paymentData.getPaymentTransactionExternalKey(), ingenicoCall);
+    }
+
+    public PaymentModificationResponse refund(final PaymentData paymentData, final String paymentId, final SplitSettlementData splitSettlementData) {
+        final RefundRequest body = null;
+        final IngenicoCallResult<RefundResponse> ingenicoCallResult = ingenicoPaymentRequestSender.refund(paymentId, body);
+        if (!ingenicoCallResult.receivedWellFormedResponse()) {
+            return handleTechnicalFailureAtRefund(paymentId, paymentData, ingenicoCallResult);
+        }
+        return null;
+    }
+
+    private PaymentModificationResponse handleTechnicalFailureAtRefund(final String paymentId, final PaymentData paymentData, final IngenicoCallResult<RefundResponse> ingenicoCall) {
+        logTransactionError("refund", paymentId, null, ingenicoCall);
+        return null;
+        //return new PurchaseResult(paymentData.getPaymentTransactionExternalKey(), ingenicoCall);
+    }
+
     public String tokenizeCreditCard(PaymentInfo paymentInfo, UserData userData) {
         CreateTokenRequest body = ingenicoRequestFactory.createTokenRequest(paymentInfo, userData);
         final IngenicoCallResult<CreateTokenResponse> ingenicoCallResult = ingenicoPaymentRequestSender.createToken(body);
@@ -124,22 +146,5 @@ public class IngenicoClient extends BaseIngenicoPaymentServiceProviderPort imple
         }
 
         return ingenicoCallResult.getResult().get().getToken();
-    }
-
-    public PaymentModificationResponse cancel(final PaymentData paymentData, final String paymentId, final SplitSettlementData splitSettlementData) {
-        final IngenicoCallResult<CancelPaymentResponse> ingenicoCallResult = ingenicoPaymentRequestSender.cancel(paymentId);
-        if (!ingenicoCallResult.receivedWellFormedResponse()) {
-            //return handleTechnicalFailureAtApprove(paymentId, paymentData, ingenicoCallResult);
-        }
-        return null;
-    }
-
-    public PaymentModificationResponse refund(final PaymentData paymentData, final String paymentId, final SplitSettlementData splitSettlementData) {
-        final RefundRequest body = null;
-        final IngenicoCallResult<RefundResponse> ingenicoCallResult = ingenicoPaymentRequestSender.refund(paymentId, body);
-        if (!ingenicoCallResult.receivedWellFormedResponse()) {
-            //return handleTechnicalFailureAtApprove(paymentId, paymentData, ingenicoCallResult);
-        }
-        return null;
     }
 }

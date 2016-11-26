@@ -66,9 +66,7 @@ public class ModificationRequestBuilder extends RequestBuilder<ApprovePaymentReq
         }
 
         final String currency = paymentData.getCurrency().name();
-        final AmountOfMoney amount = new AmountOfMoney();
-        amount.setAmount(toMinorUnits(paymentData.getAmount(), currency));
-        amount.setCurrencyCode(currency);
+        request.setAmount(toLong(paymentData.getAmount()));
     }
 
 //    private void setSplitSettlementData() {

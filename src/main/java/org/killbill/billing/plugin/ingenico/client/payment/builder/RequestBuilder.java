@@ -40,4 +40,8 @@ public abstract class RequestBuilder<R> {
         }
         return KillBillMoney.toMinorUnits(currencyIsoCode, amountBD);
     }
+
+    protected Long toLong(@Nullable final BigDecimal amountBD) {
+        return amountBD.setScale(0,BigDecimal.ROUND_HALF_UP).longValueExact();
+    }
 }
