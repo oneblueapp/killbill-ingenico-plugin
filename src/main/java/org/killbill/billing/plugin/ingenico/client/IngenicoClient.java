@@ -16,20 +16,29 @@ import org.killbill.billing.plugin.ingenico.client.model.UserData;
 import org.killbill.billing.plugin.ingenico.client.model.paymentinfo.Card;
 import org.killbill.billing.plugin.ingenico.client.payment.builder.IngenicoRequestFactory;
 import org.killbill.billing.plugin.ingenico.client.payment.service.BaseIngenicoPaymentServiceProviderPort;
+import org.killbill.billing.plugin.ingenico.client.payment.service.IngenicoCallErrorStatus;
 import org.killbill.billing.plugin.ingenico.client.payment.service.IngenicoCallResult;
 import org.killbill.billing.plugin.ingenico.client.payment.service.IngenicoPaymentRequestSender;
 
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableMap;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.ApprovePaymentRequest;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.CancelPaymentResponse;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.CreatePaymentRequest;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.CreatePaymentResponse;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.PaymentApprovalResponse;
+import com.ingenico.connect.gateway.sdk.java.domain.payment.PaymentResponse;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.Payment;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.PaymentOutput;
 import com.ingenico.connect.gateway.sdk.java.domain.refund.RefundRequest;
 import com.ingenico.connect.gateway.sdk.java.domain.refund.RefundResponse;
 import com.ingenico.connect.gateway.sdk.java.domain.token.CreateTokenRequest;
 import com.ingenico.connect.gateway.sdk.java.domain.token.CreateTokenResponse;
+
+import static org.killbill.billing.plugin.ingenico.client.model.PurchaseResult.EXCEPTION_CLASS;
+import static org.killbill.billing.plugin.ingenico.client.model.PurchaseResult.EXCEPTION_MESSAGE;
+import static org.killbill.billing.plugin.ingenico.client.model.PurchaseResult.INGENICO_CALL_ERROR_STATUS;
+import static org.killbill.billing.plugin.ingenico.client.model.PurchaseResult.UNKNOWN;
 
 /**
  * Created by otaviosoares on 14/11/16.
@@ -64,7 +73,7 @@ public class IngenicoClient extends BaseIngenicoPaymentServiceProviderPort imple
         final CreatePaymentResponse result = ingenicoCallResult.getResult().get();
         Payment paymentResponse = result.getPayment();
 
-        final PaymentServiceProviderResult paymentServiceProviderResult = PaymentServiceProviderResult.getPaymentResultForId(paymentResponse.getStatus());
+        final PaymentServiceProviderResult paymentServiceProviderResult = PaymentServiceProviderResult.getPaymentResultForId(paymentResponse.getStatus(), transactionType);
 
         PaymentOutput paymentOutput = paymentResponse.getPaymentOutput();
 
@@ -98,15 +107,15 @@ public class IngenicoClient extends BaseIngenicoPaymentServiceProviderPort imple
 
         PaymentApprovalResponse result = ingenicoCallResult.getResult().get();
         Payment paymentResponse = result.getPayment();
-        PaymentOutput paymentOutput = paymentResponse.getPaymentOutput();
 
-        return new PaymentModificationResponse<PaymentApprovalResponse>(paymentResponse.getStatus(), paymentOutput.getReferences().getMerchantReference(), null);
+        final PaymentServiceProviderResult paymentServiceProviderResult = PaymentServiceProviderResult.getPaymentResultForId(paymentResponse.getStatus(), null);
+
+        return new PaymentModificationResponse<PaymentApprovalResponse>(paymentServiceProviderResult, paymentResponse.getStatus(), paymentId);
     }
 
     private PaymentModificationResponse handleTechnicalFailureAtApprove(final String paymentId, final PaymentData paymentData, final IngenicoCallResult<PaymentApprovalResponse> ingenicoCall) {
         logTransactionError("capture", paymentId, paymentData, ingenicoCall);
-        return null;
-        //return new PurchaseResult(paymentData.getPaymentTransactionExternalKey(), ingenicoCall);
+        return new PaymentModificationResponse(paymentId, ingenicoCall, getModificationAdditionalErrorData(ingenicoCall));
     }
 
     public PaymentModificationResponse cancel(final String paymentId, final SplitSettlementData splitSettlementData) {
@@ -119,8 +128,7 @@ public class IngenicoClient extends BaseIngenicoPaymentServiceProviderPort imple
 
     private PaymentModificationResponse handleTechnicalFailureAtCancel(final String paymentId, final IngenicoCallResult<CancelPaymentResponse> ingenicoCall) {
         logTransactionError("cancel", paymentId, null, ingenicoCall);
-        return null;
-        //return new PurchaseResult(paymentData.getPaymentTransactionExternalKey(), ingenicoCall);
+        return new PaymentModificationResponse(paymentId, ingenicoCall, getModificationAdditionalErrorData(ingenicoCall));
     }
 
     public PaymentModificationResponse refund(final PaymentData paymentData, final String paymentId, final SplitSettlementData splitSettlementData) {
@@ -134,8 +142,17 @@ public class IngenicoClient extends BaseIngenicoPaymentServiceProviderPort imple
 
     private PaymentModificationResponse handleTechnicalFailureAtRefund(final String paymentId, final PaymentData paymentData, final IngenicoCallResult<RefundResponse> ingenicoCall) {
         logTransactionError("refund", paymentId, null, ingenicoCall);
-        return null;
-        //return new PurchaseResult(paymentData.getPaymentTransactionExternalKey(), ingenicoCall);
+        return new PaymentModificationResponse(paymentId, ingenicoCall, getModificationAdditionalErrorData(ingenicoCall));
+    }
+
+    private Map<Object,Object> getModificationAdditionalErrorData(final IngenicoCallResult<?> ingenicoCall) {
+        final Map<Object, Object> additionalDataMap = new HashMap<Object, Object>();
+        final Optional<IngenicoCallErrorStatus> responseStatus = ingenicoCall.getResponseStatus();
+        additionalDataMap.putAll(ImmutableMap.<Object, Object>of(INGENICO_CALL_ERROR_STATUS, responseStatus.isPresent() ? responseStatus.get() : "",
+                                                                 EXCEPTION_CLASS, ingenicoCall.getExceptionClass().or(UNKNOWN),
+                                                                 EXCEPTION_MESSAGE, ingenicoCall.getExceptionMessage().or(UNKNOWN)));
+
+        return additionalDataMap;
     }
 
     public String tokenizeCreditCard(PaymentInfo paymentInfo, UserData userData) {
@@ -146,5 +163,17 @@ public class IngenicoClient extends BaseIngenicoPaymentServiceProviderPort imple
         }
 
         return ingenicoCallResult.getResult().get().getToken();
+    }
+
+    public PaymentModificationResponse getPaymentInfo(final String paymentId, TransactionType transactionType) {
+        final IngenicoCallResult<PaymentResponse> ingenicoCallResult = ingenicoPaymentRequestSender.get(paymentId);
+        if (!ingenicoCallResult.receivedWellFormedResponse()) {
+            return null;
+        }
+
+        PaymentResponse result = ingenicoCallResult.getResult().get();
+        final PaymentServiceProviderResult paymentServiceProviderResult = PaymentServiceProviderResult.getPaymentResultForId(result.getStatus(), transactionType);
+
+        return new PaymentModificationResponse(paymentServiceProviderResult, result.getStatus(), result.getId());
     }
 }

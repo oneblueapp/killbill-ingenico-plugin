@@ -160,7 +160,8 @@ public class IngenicoPaymentTransactionInfoPlugin extends PluginPaymentTransacti
             }
             return ingenicoCallErrorStatusToPaymentPluginStatus(ingenicoCallErrorStatus);
         } else {
-            final PaymentServiceProviderResult paymentResult = PaymentServiceProviderResult.getPaymentResultForId(record.getIngenicoStatus() != null ? record.getIngenicoStatus() : record.getIngenicoPaymentId());
+            TransactionType transactionType = TransactionType.valueOf(record.getTransactionType());
+            final PaymentServiceProviderResult paymentResult = PaymentServiceProviderResult.getPaymentResultForId(record.getIngenicoStatus() != null ? record.getIngenicoStatus() : record.getIngenicoResult(), transactionType);
             final Optional<PaymentServiceProviderResult> status = Optional.of(paymentResult);
             return getPaymentPluginStatus(status);
         }

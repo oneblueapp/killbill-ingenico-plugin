@@ -21,7 +21,9 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 
 import org.joda.time.DateTime;
 import org.killbill.billing.account.api.Account;
@@ -40,6 +42,7 @@ import org.killbill.billing.plugin.ingenico.client.IngenicoClient;
 import org.killbill.billing.plugin.ingenico.client.model.*;
 import org.killbill.billing.plugin.ingenico.client.model.paymentinfo.Card;
 import org.killbill.billing.plugin.ingenico.core.IngenicoConfigurationHandler;
+import org.killbill.billing.plugin.ingenico.core.IngenicoNotificationHandler;
 import org.killbill.billing.plugin.ingenico.dao.IngenicoDao;
 import org.killbill.billing.plugin.ingenico.dao.gen.tables.IngenicoPaymentMethods;
 import org.killbill.billing.plugin.ingenico.dao.gen.tables.IngenicoResponses;
@@ -80,6 +83,7 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
     public static final String PROPERTY_EMAIL = "email";
 
     private final IngenicoDao dao;
+    private final IngenicoNotificationHandler ingenicoNotificationHandler;
 
     public IngenicoPaymentPluginApi(final IngenicoConfigurationHandler ingenicoConfigurationHandler,
                                     final OSGIKillbillAPI killbillAPI,
@@ -91,6 +95,35 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
         this.ingenicoConfigurationHandler = ingenicoConfigurationHandler;
         this.logService = logService;
         this.dao = dao;
+        this.ingenicoNotificationHandler = new IngenicoNotificationHandler(killbillAPI, dao, clock);
+    }
+
+    @Override
+    public List<PaymentTransactionInfoPlugin> getPaymentInfo(final UUID kbAccountId, final UUID kbPaymentId, final Iterable<PluginProperty> properties, final TenantContext context) throws PaymentPluginApiException {
+        List<PaymentTransactionInfoPlugin> paymentTransactions = super.getPaymentInfo(kbAccountId, kbPaymentId, properties, context);
+
+        final IngenicoClient ingenicoClient = ingenicoConfigurationHandler.getConfigurable(context.getTenantId());
+
+        IngenicoResponsesRecord ingenicoResponseRecord = null;
+        try {
+            ingenicoResponseRecord = dao.getResponse(kbPaymentId, context.getTenantId());
+        }
+        catch (final SQLException e) {
+            logService.log(LogService.LOG_WARNING, "Failed to retrieve payment response from payment " + kbPaymentId, e);
+        }
+
+        if (null != ingenicoResponseRecord && null != ingenicoResponseRecord.getIngenicoPaymentId()) {
+            TransactionType transactionType = TransactionType.valueOf(ingenicoResponseRecord.getTransactionType());
+            PaymentModificationResponse response = ingenicoClient.getPaymentInfo(ingenicoResponseRecord.getIngenicoPaymentId(), transactionType);
+
+            try {
+                this.ingenicoNotificationHandler.updatePaymentInfo(kbAccountId, kbPaymentId, paymentTransactions, transactionType, ingenicoResponseRecord, response, context);
+            } catch (SQLException e) {
+                logService.log(LogService.LOG_WARNING, "Failed to save new response from gateway");
+            }
+        }
+        
+        return paymentTransactions;
     }
 
 
@@ -231,17 +264,12 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
 
     @Override
     public HostedPaymentPageFormDescriptor buildFormDescriptor(final UUID kbAccountId, final Iterable<PluginProperty> customFields, final Iterable<PluginProperty> properties, final CallContext context) throws PaymentPluginApiException {
-        return null;
+        throw new PaymentPluginApiException(null, "BUILD FORM_DESCRIPTOR: unsupported operation");
     }
-
-    //    @Override
-//    public List<PaymentMethodInfoPlugin> getPaymentMethods(final UUID kbAccountId, final boolean refreshFromGateway, final Iterable<PluginProperty> properties, final CallContext context) throws PaymentPluginApiException {
-//        return null;
-//    }
 
     @Override
     public GatewayNotification processNotification(final String notification, final Iterable<PluginProperty> properties, final CallContext context) throws PaymentPluginApiException {
-        return null;
+        throw new PaymentPluginApiException(null, "PROCESS NOTIFICATION: unsupported operation");
     }
 
     private abstract static class TransactionExecutor<T> {
@@ -306,6 +334,12 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
         final DateTime utcNow = clock.getUTCNow();
 
         final PurchaseResult response = transactionExecutor.execute(paymentData, userData, splitSettlementData);
+
+        if (transactionType == TransactionType.PURCHASE
+                && response.getResult().isPresent()
+                && response.getResult().get().equals(PaymentServiceProviderResult.AUTHORISED)) {
+
+        }
         try {
             dao.addResponse(kbAccountId, kbPaymentId, kbTransactionId, transactionType, amount, currency, response, utcNow, context.getTenantId());
             return new IngenicoPaymentTransactionInfoPlugin(kbPaymentId, kbTransactionId, transactionType, amount, currency, utcNow, response);

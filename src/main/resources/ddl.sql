@@ -10,6 +10,7 @@ create table ingenico_responses (
 , currency char(3)
 , ingenico_payment_id varchar(50)
 , ingenico_status varchar(50)
+, ingenico_result char(64)
 , ingenico_payment_reference varchar(64)
 , ingenico_merchant_reference varchar(64)
 , ingenico_authorization_code varchar(255)

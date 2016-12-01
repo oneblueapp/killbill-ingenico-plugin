@@ -21,13 +21,16 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.killbill.billing.payment.api.Payment;
+import org.killbill.billing.payment.api.TransactionType;
+
 public enum PaymentServiceProviderResult {
 
-    AUTHORISED(new String[] {"PENDING_APPROVAL", "PENDING_PAYMENT", "ACCOUNT_VERIFIED", "CAPTURED", "CANCELLED", "REFUNDED", "CHARGEBACKED", "REVERSED", "PAID"}),
+    AUTHORISED(new String[] {"CAPTURED", "CANCELLED", "REFUNDED", "CHARGEBACKED", "REVERSED", "PAID", "ACCOUNT_VERIFIED"}),
     REDIRECT_SHOPPER("REDIRECTED"), // authorize return code when using 3D-Secure
     RECEIVED(new String[]{"CREATED", "AUTHORIZATION_REQUESTED", "CAPTURE_REQUESTED"}), // direct debit, ideal payment response
     REFUSED(new String[] {"REJECTED_CAPTURE", "REJECTED"}),
-    PENDING(new String[]{"", "PENDING_FRAUD_APPROVAL"}),
+    PENDING(new String[]{"PENDING_APPROVAL", "PENDING_PAYMENT", "PENDING_FRAUD_APPROVAL"}),
     ERROR(new String[]{"Error", "[error]"}),
     CANCELLED("");
 
@@ -51,13 +54,19 @@ public enum PaymentServiceProviderResult {
         this.responses = responses;
     }
 
-    public static PaymentServiceProviderResult getPaymentResultForId(@Nullable final String id) {
+    public static PaymentServiceProviderResult getPaymentResultForId(@Nullable final String id, final TransactionType transactionType) {
         if (id == null) {
             return ERROR;
         }
 
-        final PaymentServiceProviderResult result = REVERSE_LOOKUP.get(id);
+        PaymentServiceProviderResult result = REVERSE_LOOKUP.get(id);
         if (result != null) {
+            if ((transactionType == TransactionType.AUTHORIZE
+                 || transactionType == TransactionType.CAPTURE)
+                    && id.equals("PENDING_APPROVAL")) {
+                return PaymentServiceProviderResult.AUTHORISED;
+            }
+
             return result;
         } else {
             throw new IllegalArgumentException("Unknown PaymentResultType id: " + id);
@@ -70,6 +79,6 @@ public enum PaymentServiceProviderResult {
 
     @Override
     public String toString() {
-        return Arrays.toString(this.responses);
+        return this.responses[0];
     }
 }

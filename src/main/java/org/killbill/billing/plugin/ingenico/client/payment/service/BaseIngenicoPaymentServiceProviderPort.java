@@ -29,51 +29,51 @@ public abstract class BaseIngenicoPaymentServiceProviderPort {
 
     protected Logger logger;
 
-    protected void logTransaction(final String transactionType, final UserData userData, final PaymentData paymentData, @Nullable final PurchaseResult result, @Nullable final IngenicoCallResult<?> adyenCall) {
+    protected void logTransaction(final String transactionType, final UserData userData, final PaymentData paymentData, @Nullable final PurchaseResult result, @Nullable final IngenicoCallResult<?> ingenicoCall) {
         final StringBuilder logBuffer = new StringBuilder();
         appendTransactionType(logBuffer, transactionType);
         appendPaymentData(logBuffer, paymentData);
         appendUserData(logBuffer, userData);
         appendPurchaseResult(logBuffer, result);
-        if (adyenCall != null) {
-            appendDuration(logBuffer, adyenCall.getDuration());
+        if (ingenicoCall != null) {
+            appendDuration(logBuffer, ingenicoCall.getDuration());
         }
         logBuffer.append(", error=false");
 
         //logger.info(logBuffer.toString());
     }
 
-    protected void logTransaction(final String transactionType, final String pspReference, final PaymentData paymentData, final PaymentModificationResponse response, final IngenicoCallResult<?> adyenCall) {
+    protected void logTransaction(final String transactionType, final String pspReference, final PaymentData paymentData, final PaymentModificationResponse response, final IngenicoCallResult<?> ingenicoCall) {
         final StringBuilder logBuffer = new StringBuilder();
         appendTransactionType(logBuffer, transactionType);
         appendPaymentData(logBuffer, paymentData);
         appendPspReference(logBuffer, pspReference);
         appendModificationResponse(logBuffer, response);
-        appendDuration(logBuffer, adyenCall.getDuration());
+        appendDuration(logBuffer, ingenicoCall.getDuration());
         logBuffer.append(", error=false");
 
         //logger.info(logBuffer.toString());
     }
 
-    protected void logTransactionError(final String transactionType, final UserData userData, final PaymentData paymentData, final IngenicoCallResult<?> adyenCall) {
+    protected void logTransactionError(final String transactionType, final UserData userData, final PaymentData paymentData, final IngenicoCallResult<?> ingenicoCall) {
         final StringBuilder logBuffer = new StringBuilder();
         appendTransactionType(logBuffer, transactionType);
         appendPaymentData(logBuffer, paymentData);
         appendUserData(logBuffer, userData);
-        appendAdyenCall(logBuffer, adyenCall);
-        appendDuration(logBuffer, adyenCall.getDuration());
+        appendIngenicoCall(logBuffer, ingenicoCall);
+        appendDuration(logBuffer, ingenicoCall.getDuration());
         logBuffer.append(", error=true");
 
         //logger.warn(logBuffer.toString());
     }
 
-    protected void logTransactionError(final String transactionType, final String paymentId,  final PaymentData paymentData, final IngenicoCallResult<?> adyenCall) {
+    protected void logTransactionError(final String transactionType, final String paymentId,  final PaymentData paymentData, final IngenicoCallResult<?> ingenicoCall) {
         final StringBuilder logBuffer = new StringBuilder();
         appendTransactionType(logBuffer, transactionType);
         appendPaymentData(logBuffer, paymentData);
         appendPspReference(logBuffer, paymentId);
-        appendAdyenCall(logBuffer, adyenCall);
-        appendDuration(logBuffer, adyenCall.getDuration());
+        appendIngenicoCall(logBuffer, ingenicoCall);
+        appendDuration(logBuffer, ingenicoCall.getDuration());
         logBuffer.append(", error=true");
 
         //logger.warn(logBuffer.toString());
@@ -136,7 +136,7 @@ public abstract class BaseIngenicoPaymentServiceProviderPort {
         buffer.append(", duration=").append(duration);
     }
 
-    private void appendAdyenCall(final StringBuilder buffer, final IngenicoCallResult<?> adyenCall) {
-        buffer.append(", ").append(adyenCall);
+    private void appendIngenicoCall(final StringBuilder buffer, final IngenicoCallResult<?> ingenicoCall) {
+        buffer.append(", ").append(ingenicoCall);
     }
 }

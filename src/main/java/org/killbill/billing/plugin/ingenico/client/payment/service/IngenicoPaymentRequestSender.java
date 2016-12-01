@@ -25,8 +25,6 @@ import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.List;
 
-import javax.xml.ws.soap.SOAPFaultException;
-
 import org.killbill.billing.plugin.ingenico.client.IngenicoClientRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,9 +46,12 @@ import com.ingenico.connect.gateway.sdk.java.domain.payment.CreatePaymentRequest
 import com.ingenico.connect.gateway.sdk.java.domain.payment.CreatePaymentResponse;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.PaymentApprovalResponse;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.PaymentResponse;
+import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.CreatePaymentResult;
 import com.ingenico.connect.gateway.sdk.java.domain.payment.definitions.Payment;
+import com.ingenico.connect.gateway.sdk.java.domain.payout.definitions.PayoutResult;
 import com.ingenico.connect.gateway.sdk.java.domain.refund.RefundRequest;
 import com.ingenico.connect.gateway.sdk.java.domain.refund.RefundResponse;
+import com.ingenico.connect.gateway.sdk.java.domain.refund.definitions.RefundResult;
 import com.ingenico.connect.gateway.sdk.java.domain.token.CreateTokenRequest;
 import com.ingenico.connect.gateway.sdk.java.domain.token.CreateTokenResponse;
 import com.ingenico.connect.gateway.sdk.java.merchant.MerchantClient;
@@ -66,6 +67,8 @@ public class IngenicoPaymentRequestSender implements Closeable {
     private static final Logger logger = LoggerFactory.getLogger(IngenicoPaymentRequestSender.class);
 
     private final IngenicoClientRegistry ingenicoClientRegistry;
+    private List<APIError> errors;
+    private String status;
 
     public IngenicoPaymentRequestSender(final IngenicoClientRegistry ingenicoClientRegistry) {
         this.ingenicoClientRegistry = ingenicoClientRegistry;
@@ -167,34 +170,34 @@ public class IngenicoPaymentRequestSender implements Closeable {
         } else if (rootCause instanceof UnknownHostException) {
             return new UnSuccessfulIngenicoCall<T>(REQUEST_NOT_SEND, rootCause);
         } else if (rootCause instanceof ValidationException) {
-            List<APIError> errors = ((ValidationException)rootCause).getErrors();
+            List<APIError> errors = ((ValidationException) rootCause).getErrors();
             return new UnSuccessfulIngenicoCall<T>(RESPONSE_ABOUT_INVALID_REQUEST, rootCause, errors);
         } else if (rootCause instanceof IllegalArgumentException) {
             return new UnSuccessfulIngenicoCall<T>(RESPONSE_ABOUT_INVALID_REQUEST, rootCause);
         } else if (rootCause instanceof DeclinedPaymentException) {
-            List<APIError> errors = ((DeclinedPaymentException)rootCause).getErrors();
-            return new UnSuccessfulIngenicoCall<T>(RESPONSE_ABOUT_INVALID_REQUEST, rootCause, errors);
+            IngenicoErrors errors = parseDeclinedPayment((DeclinedPaymentException) rootCause);
+            return new UnSuccessfulIngenicoCall<T>(RESPONSE_ABOUT_INVALID_REQUEST, rootCause, errors.getErrors(), errors.getPaymentId(), errors.getStatus());
         } else if (rootCause instanceof DeclinedPayoutException) {
-            List<APIError> errors = ((DeclinedPayoutException)rootCause).getErrors();
-            return new UnSuccessfulIngenicoCall<T>(RESPONSE_ABOUT_INVALID_REQUEST, rootCause, errors);
+            IngenicoErrors errors = parseDeclinedPayout((DeclinedPayoutException) rootCause);
+            return new UnSuccessfulIngenicoCall<T>(RESPONSE_ABOUT_INVALID_REQUEST, rootCause, errors.getErrors(), errors.getPaymentId(), errors.getStatus());
         } else if (rootCause instanceof DeclinedRefundException) {
-            List<APIError> errors = ((DeclinedRefundException)rootCause).getErrors();
-            return new UnSuccessfulIngenicoCall<T>(RESPONSE_ABOUT_INVALID_REQUEST, rootCause, errors);
+            IngenicoErrors errors = parseDeclinedRefund((DeclinedRefundException) rootCause);
+            return new UnSuccessfulIngenicoCall<T>(RESPONSE_ABOUT_INVALID_REQUEST, rootCause, errors.getErrors(), errors.getPaymentId(), errors.getStatus());
         } else if (rootCause instanceof AuthorizationException) {
-            List<APIError> errors = ((AuthorizationException)rootCause).getErrors();
+            List<APIError> errors = ((AuthorizationException) rootCause).getErrors();
             return new UnSuccessfulIngenicoCall<T>(REQUEST_NOT_SEND, rootCause, errors);
         } else if (rootCause instanceof ReferenceException) {
-            List<APIError> errors = ((ReferenceException)rootCause).getErrors();
+            List<APIError> errors = ((ReferenceException) rootCause).getErrors();
             return new UnSuccessfulIngenicoCall<T>(REQUEST_NOT_SEND, rootCause, errors);
         } else if (rootCause instanceof IdempotenceException) {
-            List<APIError> errors = ((IdempotenceException)rootCause).getErrors();
+            List<APIError> errors = ((IdempotenceException) rootCause).getErrors();
             return new UnSuccessfulIngenicoCall<T>(REQUEST_NOT_SEND, rootCause, errors);
         } else if (rootCause instanceof GlobalCollectException) {
-            List<APIError> errors = ((GlobalCollectException)rootCause).getErrors();
+            List<APIError> errors = ((GlobalCollectException) rootCause).getErrors();
             return new UnSuccessfulIngenicoCall<T>(RESPONSE_INVALID, rootCause, errors);
         } else if (rootCause instanceof ApiException) {
-            List<APIError> errors = ((ApiException)rootCause).getErrors();
-            return new UnSuccessfulIngenicoCall<T>(RESPONSE_ABOUT_INVALID_REQUEST, rootCause, errors);
+            IngenicoErrors errors = parseApiError((ApiException) rootCause);
+            return new UnSuccessfulIngenicoCall<T>(RESPONSE_ABOUT_INVALID_REQUEST, rootCause, errors.getErrors(), errors.getPaymentId(), errors.getStatus());
         } else if (rootCause instanceof IOException) {
             if (errorMessage.contains("Invalid Http response")) {
                 // unparsable data as response
@@ -215,5 +218,58 @@ public class IngenicoPaymentRequestSender implements Closeable {
     private interface IngenicoCall<T, R> {
 
         R apply(T t) throws ApiException;
+    }
+
+    private static class IngenicoErrors {
+        final private List<APIError> errors;
+        final private String status;
+        final private String paymentId;
+
+        public IngenicoErrors(final List<APIError> errors) {
+            this(errors, null, null);
+        }
+
+        private IngenicoErrors(final List<APIError> errors, final String status, final String paymentId) {
+            this.errors = errors;
+            this.status = status;
+            this.paymentId = paymentId;
+        }
+
+        public List<APIError> getErrors() {
+            return errors;
+        }
+
+        public String getStatus() {
+            return status;
+        }
+
+        public String getPaymentId() {
+            return paymentId;
+        }
+    }
+
+    private IngenicoErrors parseDeclinedPayment(DeclinedPaymentException e) {
+        List<APIError> errors = e.getErrors();
+        final CreatePaymentResult paymentResult = e.getCreatePaymentResult();
+        Payment payment = paymentResult.getPayment();
+
+        return new IngenicoErrors(errors, payment.getStatus(), payment.getId());
+    }
+
+    private IngenicoErrors parseDeclinedPayout(final DeclinedPayoutException e) {
+        List<APIError> errors = e.getErrors();
+        final PayoutResult paymentResult = e.getPayoutResult();
+        return new IngenicoErrors(errors, paymentResult.getStatus(), paymentResult.getId());
+    }
+
+    private IngenicoErrors parseDeclinedRefund(final DeclinedRefundException e) {
+        List<APIError> errors = e.getErrors();
+        final RefundResult paymentResult = e.getRefundResult();
+        return new IngenicoErrors(errors, paymentResult.getStatus(), paymentResult.getId());
+    }
+
+    private IngenicoErrors parseApiError(final ApiException e) {
+        List<APIError> errors = e.getErrors();
+        return new IngenicoErrors(errors);
     }
 }

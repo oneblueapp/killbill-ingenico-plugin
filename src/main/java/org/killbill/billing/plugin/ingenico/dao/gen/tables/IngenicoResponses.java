@@ -16,7 +16,7 @@ package org.killbill.billing.plugin.ingenico.dao.gen.tables;
 @java.lang.SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class IngenicoResponses extends org.jooq.impl.TableImpl<org.killbill.billing.plugin.ingenico.dao.gen.tables.records.IngenicoResponsesRecord> {
 
-	private static final long serialVersionUID = 714903209;
+	private static final long serialVersionUID = -2065963180;
 
 	/**
 	 * The reference instance of <code>killbill.ingenico_responses</code>
@@ -75,6 +75,11 @@ public class IngenicoResponses extends org.jooq.impl.TableImpl<org.killbill.bill
 	 * The column <code>killbill.ingenico_responses.ingenico_status</code>.
 	 */
 	public final org.jooq.TableField<org.killbill.billing.plugin.ingenico.dao.gen.tables.records.IngenicoResponsesRecord, java.lang.String> INGENICO_STATUS = createField("ingenico_status", org.jooq.impl.SQLDataType.VARCHAR.length(50), this, "");
+
+	/**
+	 * The column <code>killbill.ingenico_responses.ingenico_result</code>.
+	 */
+	public final org.jooq.TableField<org.killbill.billing.plugin.ingenico.dao.gen.tables.records.IngenicoResponsesRecord, java.lang.String> INGENICO_RESULT = createField("ingenico_result", org.jooq.impl.SQLDataType.CHAR.length(64), this, "");
 
 	/**
 	 * The column <code>killbill.ingenico_responses.ingenico_payment_reference</code>.

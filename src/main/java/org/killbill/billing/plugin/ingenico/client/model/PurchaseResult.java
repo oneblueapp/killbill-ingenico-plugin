@@ -17,19 +17,16 @@
 
 package org.killbill.billing.plugin.ingenico.client.model;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableMap;
-import com.ingenico.connect.gateway.sdk.java.domain.errors.definitions.APIError;
-import com.ingenico.connect.gateway.sdk.java.domain.payment.CreatePaymentResponse;
+import java.util.Iterator;
+import java.util.Map;
+
+import javax.annotation.Nullable;
 
 import org.killbill.billing.plugin.ingenico.client.payment.service.IngenicoCallErrorStatus;
 import org.killbill.billing.plugin.ingenico.client.payment.service.IngenicoCallResult;
 
-import javax.annotation.Nullable;
-
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableMap;
 
 public class PurchaseResult {
 
@@ -66,7 +63,7 @@ public class PurchaseResult {
     }
 
     public PurchaseResult(final String paymentTransactionExternalKey,
-                          final IngenicoCallResult<CreatePaymentResponse> ingenicoCallResult) {
+                          final IngenicoCallResult<?> ingenicoCallResult) {
 
         this(Optional.<PaymentServiceProviderResult>absent(),
              ingenicoCallResult.getPaymentId(),

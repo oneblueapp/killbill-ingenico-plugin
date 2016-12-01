@@ -17,6 +17,7 @@
 
 package org.killbill.billing.plugin.ingenico.client.model;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -33,22 +34,25 @@ public class PaymentModificationResponse<T> {
     private final Map<Object, Object> additionalData;
     private final String paymentId;
     private final String status;
-
-    public PaymentModificationResponse(final String status, final String paymentId, final Map<Object, Object> additionalData) {
-        this(paymentId, status, null, additionalData);
-    }
+    private final Optional<PaymentServiceProviderResult> result;
 
     public PaymentModificationResponse(final String paymentId, final IngenicoCallResult<T> ingenicoCallResult, final Map<Object, Object> additionalData) {
-        this(paymentId, null, ingenicoCallResult.getResponseStatus().orNull(), additionalData);
+        this(Optional.<PaymentServiceProviderResult>absent(), paymentId, null, ingenicoCallResult.getResponseStatus().orNull(), additionalData);
     }
 
-    private PaymentModificationResponse(final String paymentId,
+    public PaymentModificationResponse(final PaymentServiceProviderResult result, final String status, final String paymentId) {
+        this(Optional.of(result), paymentId, status, null, new HashMap<Object, Object>());
+    }
+
+    private PaymentModificationResponse(Optional<PaymentServiceProviderResult> result,
+                                        final String paymentId,
                                         final String status,
-                                        @Nullable final IngenicoCallErrorStatus adyenCallErrorStatus,
+                                        @Nullable final IngenicoCallErrorStatus ingenicoCallErrorStatus,
                                         final Map<Object, Object> additionalData) {
+        this.result = result;
         this.paymentId = paymentId;
         this.status = status;
-        this.ingenicoCallErrorStatus = adyenCallErrorStatus;
+        this.ingenicoCallErrorStatus = ingenicoCallErrorStatus;
         this.additionalData = additionalData;
     }
 
@@ -73,6 +77,14 @@ public class PaymentModificationResponse<T> {
 
     public Optional<IngenicoCallErrorStatus> getIngenicoCallErrorStatus() {
         return Optional.fromNullable(ingenicoCallErrorStatus);
+    }
+
+    public Optional<PaymentServiceProviderResult> getResult() {
+        return result;
+    }
+
+    public PaymentServiceProviderResult getResultOrNull() {
+        return result.isPresent() ? result.get() : null;
     }
 
     @Override
