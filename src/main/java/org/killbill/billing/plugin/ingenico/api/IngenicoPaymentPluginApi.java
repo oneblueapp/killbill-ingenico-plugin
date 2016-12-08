@@ -21,9 +21,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 
 import org.joda.time.DateTime;
 import org.killbill.billing.account.api.Account;
@@ -40,9 +38,8 @@ import org.killbill.billing.plugin.api.payment.PluginPaymentPluginApi;
 import org.killbill.billing.plugin.ingenico.api.mapping.PaymentInfoMappingService;
 import org.killbill.billing.plugin.ingenico.client.IngenicoClient;
 import org.killbill.billing.plugin.ingenico.client.model.*;
-import org.killbill.billing.plugin.ingenico.client.model.paymentinfo.Card;
 import org.killbill.billing.plugin.ingenico.core.IngenicoConfigurationHandler;
-import org.killbill.billing.plugin.ingenico.core.IngenicoNotificationHandler;
+import org.killbill.billing.plugin.ingenico.core.IngenicoTransactionStateHandler;
 import org.killbill.billing.plugin.ingenico.dao.IngenicoDao;
 import org.killbill.billing.plugin.ingenico.dao.gen.tables.IngenicoPaymentMethods;
 import org.killbill.billing.plugin.ingenico.dao.gen.tables.IngenicoResponses;
@@ -50,7 +47,6 @@ import org.killbill.billing.plugin.ingenico.dao.gen.tables.records.IngenicoPayme
 import org.killbill.billing.plugin.ingenico.dao.gen.tables.records.IngenicoResponsesRecord;
 import org.killbill.billing.util.callcontext.CallContext;
 import org.killbill.billing.util.callcontext.TenantContext;
-import org.killbill.billing.util.entity.Pagination;
 import org.killbill.clock.Clock;
 import org.osgi.service.log.LogService;
 
@@ -83,7 +79,7 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
     public static final String PROPERTY_EMAIL = "email";
 
     private final IngenicoDao dao;
-    private final IngenicoNotificationHandler ingenicoNotificationHandler;
+    private final IngenicoTransactionStateHandler ingenicoTransactionStateHandler;
 
     public IngenicoPaymentPluginApi(final IngenicoConfigurationHandler ingenicoConfigurationHandler,
                                     final OSGIKillbillAPI killbillAPI,
@@ -95,7 +91,7 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
         this.ingenicoConfigurationHandler = ingenicoConfigurationHandler;
         this.logService = logService;
         this.dao = dao;
-        this.ingenicoNotificationHandler = new IngenicoNotificationHandler(killbillAPI, dao, clock);
+        this.ingenicoTransactionStateHandler = new IngenicoTransactionStateHandler(killbillAPI, dao, clock);
     }
 
     @Override
@@ -117,7 +113,7 @@ public class IngenicoPaymentPluginApi extends PluginPaymentPluginApi<IngenicoRes
             PaymentModificationResponse response = ingenicoClient.getPaymentInfo(ingenicoResponseRecord.getIngenicoPaymentId(), transactionType);
 
             try {
-                this.ingenicoNotificationHandler.updatePaymentInfo(kbAccountId, kbPaymentId, paymentTransactions, transactionType, ingenicoResponseRecord, response, context);
+                this.ingenicoTransactionStateHandler.updatePaymentInfo(kbAccountId, kbPaymentId, paymentTransactions, transactionType, ingenicoResponseRecord, response, context);
             } catch (SQLException e) {
                 logService.log(LogService.LOG_WARNING, "Failed to save new response from gateway");
             }

@@ -54,9 +54,9 @@ import com.google.common.collect.ImmutableMap;
 /**
  * Created by otaviosoares on 30/11/16.
  */
-public class IngenicoNotificationHandler {
+public class IngenicoTransactionStateHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(IngenicoNotificationHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(IngenicoTransactionStateHandler.class);
 
     // Note that AUTHORISATION maps to either AUTHORIZE or PURCHASE
     private static final Map<String, TransactionType> EVENT_CODES_TO_TRANSACTION_TYPE = ImmutableMap.<String, TransactionType>builder().put("CANCELLED", TransactionType.VOID)
@@ -70,7 +70,7 @@ public class IngenicoNotificationHandler {
     private final IngenicoDao dao;
     private final Clock clock;
 
-    public IngenicoNotificationHandler(final OSGIKillbillAPI killbillAPI, final IngenicoDao dao, final Clock clock) {
+    public IngenicoTransactionStateHandler(final OSGIKillbillAPI killbillAPI, final IngenicoDao dao, final Clock clock) {
 
         this.killbillAPI = killbillAPI;
         this.dao = dao;
@@ -94,7 +94,7 @@ public class IngenicoNotificationHandler {
 
         if (PaymentPluginStatus.UNDEFINED.equals(paymentPluginStatus)) {
             return;
-        } else if (paymentTransaction != null && TransactionStatus.PENDING.equals(paymentTransaction.getTransactionStatus())) {
+        } else if (paymentTransaction != null && TransactionStatus.PENDING.equals(paymentTransaction.getTransactionStatus()) && !PaymentPluginStatus.PENDING.equals(paymentPluginStatus)) {
             transitionPendingTransaction(account, kbTransactionId, paymentPluginStatus, context);
         } else if (paymentTransaction != null && paymentTransactionInfoPlugin.getStatus() != paymentPluginStatus) {
             fixPaymentTransactionState(payment, paymentTransaction, paymentPluginStatus, ingenicoResponseRecord, context);

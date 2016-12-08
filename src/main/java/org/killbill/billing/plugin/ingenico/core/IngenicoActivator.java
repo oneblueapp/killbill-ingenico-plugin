@@ -42,7 +42,6 @@ public class IngenicoActivator extends KillbillActivatorBase {
     //
     public static final String PLUGIN_NAME = "killbill-ingenico";
 
-    private OSGIKillbillEventDispatcher.OSGIKillbillEventHandler killbillEventHandler;
     private IngenicoConfigurationHandler ingenicoConfigurationHandler;
 
     @Override
@@ -54,7 +53,6 @@ public class IngenicoActivator extends KillbillActivatorBase {
         ingenicoConfigurationHandler = new IngenicoConfigurationHandler(PLUGIN_NAME, killbillAPI, logService);
 
         // Register an event listener (optional)
-//        killbillEventHandler = new IngenicoListener(logService, killbillAPI);
 //        registerEventHandlerWhenPluginStart(killbillEventHandler);
 
         final IngenicoClient globalIngenicoClient = ingenicoConfigurationHandler.createConfigurable(configProperties.getProperties());

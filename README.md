@@ -72,22 +72,42 @@ curl -v \
        "pluginName": "killbill-ingenico",
        "pluginInfo": {
          "properties": [
-           {
-             "key": "accountHolderName",
-             "value": "Bob Smith"
-           },
-           {
-             "key": "trn",
-             "value": "122400724"
-           },
-           {
-             "key": "accountNumber",
-             "value": "123456789"
-           },
-           {
-             "key": "accountType",
-             "value": "C"
-           }
+          {
+            "key": "ccAlias",
+            "value": "My personal card"
+          },
+          {
+            "key": "ccNumber",
+            "value": "000000000000"
+          },
+          {
+            "key": "ccType",
+            "value": "VISA|MASTERCARD (..)"
+          },
+          {
+            "key": "ccExpirationMonth",
+            "value": "00"
+          },
+          {
+            "key": "ccExpirationYear",
+            "value": "00"
+          },
+          {
+            "key": "ccVerificationValue",
+            "value": "000"
+          },
+          {
+            "key": "ccFirstName",
+            "value": "Card holder first name"
+          },
+          {
+            "key": "ccLastName",
+            "value": "Card holder last name"
+          },
+          {
+            "key": "country",
+            "value": "CA"
+          }
          ]
        }
      }' \
